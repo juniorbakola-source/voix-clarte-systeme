@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { AlertTriangle, Mic, Map, Target, Flame } from "lucide-react";
+import { AlertTriangle, Mic, Map, Target, Flame, Rocket } from "lucide-react";
 import Module1 from "@/components/voc/Module1ChocExecutif";
 import Module2 from "@/components/voc/Module2RealiteTerrain";
 import Module3 from "@/components/voc/Module3Cartographie";
 import Module4 from "@/components/voc/Module4Maturite";
 import Module5 from "@/components/voc/Module5Lacunes";
+import Module6 from "@/components/voc/Module6NextSteps";
 
 const MODULES = [
   { id: 0, icon: AlertTriangle, label: "Choc exécutif", short: "Choc" },
@@ -12,6 +13,7 @@ const MODULES = [
   { id: 2, icon: Map, label: "Cartographie", short: "Flux" },
   { id: 3, icon: Target, label: "Maturité", short: "Maturité" },
   { id: 4, icon: Flame, label: "Lacunes critiques", short: "Lacunes" },
+  { id: 5, icon: Rocket, label: "Next Steps", short: "Next" },
 ] as const;
 
 export default function Index() {
