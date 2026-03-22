@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { AlertTriangle, Mic, Map, Target, Flame } from "lucide-react";
+import { AlertTriangle, Mic, Map, Target, Flame, Rocket } from "lucide-react";
 import Module1 from "@/components/voc/Module1ChocExecutif";
 import Module2 from "@/components/voc/Module2RealiteTerrain";
 import Module3 from "@/components/voc/Module3Cartographie";
 import Module4 from "@/components/voc/Module4Maturite";
 import Module5 from "@/components/voc/Module5Lacunes";
+import Module6 from "@/components/voc/Module6NextSteps";
 
 const MODULES = [
   { id: 0, icon: AlertTriangle, label: "Choc exécutif", short: "Choc" },
@@ -12,6 +13,7 @@ const MODULES = [
   { id: 2, icon: Map, label: "Cartographie", short: "Flux" },
   { id: 3, icon: Target, label: "Maturité", short: "Maturité" },
   { id: 4, icon: Flame, label: "Lacunes critiques", short: "Lacunes" },
+  { id: 5, icon: Rocket, label: "Next Steps", short: "Next" },
 ] as const;
 
 export default function Index() {
@@ -71,7 +73,7 @@ export default function Index() {
         <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border px-6 py-4">
           <div className="flex items-center justify-between max-w-4xl">
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Module {active + 1} / 5</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Module {active + 1} / 6</p>
               <h2 className="section-title text-lg">{MODULES[active].label}</h2>
             </div>
             <div className="flex gap-1">
@@ -91,6 +93,7 @@ export default function Index() {
           {active === 2 && <Module3 />}
           {active === 3 && <Module4 />}
           {active === 4 && <Module5 />}
+          {active === 5 && <Module6 />}
 
           {/* Navigation buttons */}
           <div className="flex justify-between mt-12 pt-6 border-t border-border">
@@ -102,8 +105,8 @@ export default function Index() {
               ← Précédent
             </button>
             <button
-              onClick={() => setActive(Math.min(4, active + 1))}
-              disabled={active === 4}
+              onClick={() => setActive(Math.min(5, active + 1))}
+              disabled={active === 5}
               className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground disabled:opacity-30 hover:bg-primary/90 active:scale-[0.97] transition-all"
             >
               Suivant →
