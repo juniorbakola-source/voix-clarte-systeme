@@ -105,8 +105,8 @@ export default function Index() {
               ← Précédent
             </button>
             <button
-              onClick={() => setActive(Math.min(4, active + 1))}
-              disabled={active === 4}
+              onClick={() => setActive(Math.min(5, active + 1))}
+              disabled={active === 5}
               className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground disabled:opacity-30 hover:bg-primary/90 active:scale-[0.97] transition-all"
             >
               Suivant →
