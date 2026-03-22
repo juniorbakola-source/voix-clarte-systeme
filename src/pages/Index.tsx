@@ -93,6 +93,7 @@ export default function Index() {
           {active === 2 && <Module3 />}
           {active === 3 && <Module4 />}
           {active === 4 && <Module5 />}
+          {active === 5 && <Module6 />}
 
           {/* Navigation buttons */}
           <div className="flex justify-between mt-12 pt-6 border-t border-border">
