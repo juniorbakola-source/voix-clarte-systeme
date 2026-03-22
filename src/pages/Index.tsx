@@ -73,7 +73,7 @@ export default function Index() {
         <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border px-6 py-4">
           <div className="flex items-center justify-between max-w-4xl">
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Module {active + 1} / 5</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Module {active + 1} / 6</p>
               <h2 className="section-title text-lg">{MODULES[active].label}</h2>
             </div>
             <div className="flex gap-1">
