@@ -6,58 +6,62 @@
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 40% 13%;
+    --background: 0 0% 96%;
+    --foreground: 0 0% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 40% 13%;
+    --card-foreground: 0 0% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 40% 13%;
+    --popover-foreground: 0 0% 11%;
 
-    --primary: 220 40% 13%;
+    --primary: 0 0% 11%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 40% 13%;
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 11%;
 
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 38 92% 50%;
-    --accent-foreground: 220 40% 10%;
+    --accent: 358 81% 52%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 358 81% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 38 92% 50%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 358 81% 52%;
 
     --radius: 0.5rem;
 
-    /* Custom tokens */
-    --navy: 220 40% 13%;
-    --navy-light: 220 30% 22%;
-    --navy-muted: 220 20% 35%;
-    --amber: 38 92% 50%;
-    --amber-light: 38 85% 60%;
-    --amber-muted: 38 40% 85%;
+    /* Custom tokens — ELKA brand */
+    --navy: 0 0% 11%;
+    --navy-light: 0 0% 18%;
+    --navy-muted: 0 0% 30%;
+    --amber: 358 81% 52%;
+    --amber-light: 358 70% 62%;
+    --amber-muted: 358 30% 85%;
     --success: 152 60% 40%;
     --warning: 38 92% 50%;
-    --critical: 0 72% 51%;
-    --reactive: 0 72% 51%;
-    --partial: 45 92% 50%;
+    --critical: 358 81% 52%;
+    --reactive: 358 81% 52%;
+    --partial: 38 80% 50%;
     --indirect: 210 70% 50%;
+    --elka-red: 358 81% 52%;
+    --elka-black: 0 0% 0%;
+    --elka-silver: 0 0% 71%;
+    --elka-darkgray: 0 0% 11%;
 
-    --sidebar-background: 220 40% 13%;
-    --sidebar-foreground: 220 15% 85%;
-    --sidebar-primary: 38 92% 50%;
-    --sidebar-primary-foreground: 220 40% 10%;
-    --sidebar-accent: 220 30% 22%;
-    --sidebar-accent-foreground: 220 15% 85%;
-    --sidebar-border: 220 30% 22%;
-    --sidebar-ring: 38 92% 50%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-primary: 358 81% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 0 0% 85%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 358 81% 52%;
   }
 }
 
@@ -136,6 +140,10 @@
   }
   .heatmap-low {
     @apply bg-slate-200 text-slate-500;
+  }
+
+  .wcm-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest;
   }
 }
 

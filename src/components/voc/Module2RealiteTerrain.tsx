@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { verbatims, type Verbatim } from "@/data/interviewData";
+import { verbatims, DEPARTMENTS, type Verbatim } from "@/data/interviewData";
 import { X } from "lucide-react";
 
 const useReveal = () => {
@@ -22,8 +22,6 @@ const TAG_LABELS = { reactive: "🔴 Réactif", partial: "🟡 Partiellement str
 const TAG_CLASSES = { reactive: "tag-reactive", partial: "tag-partial", indirect: "tag-indirect" } as const;
 const NEED_COLORS = { Explicite: "bg-blue-100 text-blue-800", Latent: "bg-purple-100 text-purple-800", Critique: "bg-red-100 text-red-800" } as const;
 
-const DEPARTMENTS = ["Tous", "Production", "Ventes", "Ingénierie"] as const;
-
 export default function Module2() {
   const [filter, setFilter] = useState<string>("Tous");
   const [selected, setSelected] = useState<Verbatim | null>(null);
@@ -35,16 +33,16 @@ export default function Module2() {
     <div className="space-y-6">
       <div ref={r1.ref} className={r1.className}>
         <h3 className="section-title text-xl mb-2">Verbatim terrain</h3>
-        <p className="text-muted-foreground text-sm mb-6">Extraits des interviews réalisées auprès de 3 départements clés.</p>
+        <p className="text-muted-foreground text-sm mb-6">Extraits des interviews réalisées auprès de 6 départements — données réelles ELKA Suspension.</p>
 
         <div className="flex gap-2 mb-6 flex-wrap">
           {DEPARTMENTS.map(d => (
             <button
               key={d}
               onClick={() => setFilter(d)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] ${
                 filter === d
-                  ? "bg-primary text-primary-foreground shadow-md"
+                  ? "bg-[hsl(var(--elka-red))] text-white shadow-md"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               }`}
             >
@@ -60,7 +58,6 @@ export default function Module2() {
         ))}
       </div>
 
-      {/* Modal */}
       {selected && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setSelected(null)}>
           <div
@@ -84,7 +81,7 @@ export default function Module2() {
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{selected.department} — {selected.context}</p>
             <p className="font-semibold text-foreground mb-3">{selected.question}</p>
 
-            <blockquote className="border-l-4 border-l-accent pl-4 py-2 mb-6 bg-accent/5 rounded-r-lg">
+            <blockquote className="border-l-4 border-l-[hsl(var(--elka-red))] pl-4 py-2 mb-6 bg-red-50 rounded-r-lg">
               <p className="text-sm leading-relaxed italic text-foreground/80">« {selected.response} »</p>
             </blockquote>
 
@@ -119,7 +116,7 @@ function VerbatimCard({ verbatim: v, delay, onClick }: { verbatim: Verbatim; del
         </div>
         <p className="text-sm font-medium text-foreground mb-2 line-clamp-1">{v.question}</p>
         <p className="text-sm text-muted-foreground line-clamp-2 italic">« {v.response} »</p>
-        <p className="text-xs text-accent mt-3 font-medium group-hover:underline">Voir le détail →</p>
+        <p className="text-xs text-[hsl(var(--elka-red))] mt-3 font-medium group-hover:underline">Voir le détail →</p>
       </div>
     </div>
   );

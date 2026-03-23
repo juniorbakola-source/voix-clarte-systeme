@@ -34,10 +34,19 @@ export default function Module4() {
   const r3 = useReveal();
 
   const radarData = [
-    { axis: "Collecte", Ventes: 2.5, Production: 2.0, Ingénierie: 1.5 },
-    { axis: "Centralisation", Ventes: 1.5, Production: 1.5, Ingénierie: 1.0 },
-    { axis: "Analyse", Ventes: 1.0, Production: 1.0, Ingénierie: 1.5 },
-    { axis: "Exploitation", Ventes: 1.5, Production: 1.0, Ingénierie: 1.5 },
+    { axis: "Collecte", "Service Client": 2.0, Ventes: 2.5, Production: 1.5, Ingénierie: 2.0, Shipping: 1.5, Qualité: 2.0 },
+    { axis: "Centralisation", "Service Client": 1.0, Ventes: 1.5, Production: 1.0, Ingénierie: 1.0, Shipping: 1.0, Qualité: 1.5 },
+    { axis: "Analyse", "Service Client": 1.0, Ventes: 1.0, Production: 1.0, Ingénierie: 1.5, Shipping: 1.0, Qualité: 1.0 },
+    { axis: "Exploitation", "Service Client": 1.0, Ventes: 1.0, Production: 1.0, Ingénierie: 1.5, Shipping: 1.0, Qualité: 1.0 },
+  ];
+
+  const deptColors = [
+    { name: "Service Client", color: "hsl(358, 81%, 52%)", dot: "bg-[hsl(var(--elka-red))]" },
+    { name: "Ventes", color: "hsl(38, 80%, 50%)", dot: "bg-amber-500" },
+    { name: "Production", color: "hsl(210, 70%, 50%)", dot: "bg-blue-500" },
+    { name: "Ingénierie", color: "hsl(152, 60%, 40%)", dot: "bg-emerald-500" },
+    { name: "Shipping", color: "hsl(280, 60%, 50%)", dot: "bg-purple-500" },
+    { name: "Qualité", color: "hsl(0, 0%, 50%)", dot: "bg-gray-500" },
   ];
 
   const selected = selectedDept ? maturityScores.find(s => s.department === selectedDept) : null;
@@ -47,50 +56,44 @@ export default function Module4() {
     <div className="space-y-8">
       <div ref={r1.ref} className={r1.className}>
         <h3 className="section-title text-xl mb-2">Évaluation de maturité VOC</h3>
-        <p className="text-muted-foreground text-sm mb-6">Radar comparatif des 3 départements sur les 4 axes de maturité.</p>
+        <p className="text-muted-foreground text-sm mb-6">Radar comparatif des 6 départements sur les 4 axes de maturité — basé sur les interviews réelles ELKA.</p>
       </div>
 
-      {/* Radar */}
       <div ref={r2.ref} className={r2.className}>
         <div className="consulting-card">
-          <ResponsiveContainer width="100%" height={360}>
-            <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
+          <ResponsiveContainer width="100%" height={380}>
+            <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
               <PolarGrid stroke="hsl(var(--border))" />
-              <PolarAngleAxis dataKey="axis" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} />
-              <Radar name="Ventes" dataKey="Ventes" stroke="hsl(38, 92%, 50%)" fill="hsl(38, 92%, 50%)" fillOpacity={0.15} strokeWidth={2} />
-              <Radar name="Production" dataKey="Production" stroke="hsl(0, 72%, 51%)" fill="hsl(0, 72%, 51%)" fillOpacity={0.1} strokeWidth={2} />
-              <Radar name="Ingénierie" dataKey="Ingénierie" stroke="hsl(210, 70%, 50%)" fill="hsl(210, 70%, 50%)" fillOpacity={0.1} strokeWidth={2} />
+              <PolarAngleAxis dataKey="axis" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+              {deptColors.map(d => (
+                <Radar key={d.name} name={d.name} dataKey={d.name} stroke={d.color} fill={d.color} fillOpacity={0.08} strokeWidth={2} />
+              ))}
               <Tooltip />
             </RadarChart>
           </ResponsiveContainer>
 
-          <div className="flex justify-center gap-6 mt-4">
-            {[
-              { name: "Ventes", color: "bg-amber-500" },
-              { name: "Production", color: "bg-red-500" },
-              { name: "Ingénierie", color: "bg-blue-500" },
-            ].map(d => (
+          <div className="flex flex-wrap justify-center gap-3 mt-4">
+            {deptColors.map(d => (
               <button
                 key={d.name}
                 onClick={() => setSelectedDept(d.name)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-secondary transition-colors active:scale-[0.97]"
               >
-                <div className={`w-2.5 h-2.5 rounded-full ${d.color}`} />
-                <span className="text-sm font-medium">{d.name}</span>
+                <div className={`w-2.5 h-2.5 rounded-full ${d.dot}`} />
+                <span className="text-xs font-medium">{d.name}</span>
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Maturity scale */}
       <div ref={r3.ref} className={r3.className}>
         <div className="consulting-card">
           <p className="text-xs text-muted-foreground uppercase tracking-wide mb-4 font-semibold">Échelle de maturité</p>
           <div className="flex gap-1">
             {LEVELS.map(l => (
               <div key={l.score} className="flex-1 text-center">
-                <div className={`h-2 rounded-full mb-2 ${l.score <= 2 ? "bg-red-400" : l.score <= 3 ? "bg-amber-400" : "bg-emerald-400"}`} />
+                <div className={`h-2 rounded-full mb-2 ${l.score <= 2 ? "bg-[hsl(var(--elka-red))]" : l.score <= 3 ? "bg-amber-400" : "bg-emerald-400"}`} />
                 <p className="text-xs font-semibold">{l.score}</p>
                 <p className="text-[10px] text-muted-foreground">{l.label}</p>
               </div>
@@ -99,7 +102,6 @@ export default function Module4() {
         </div>
       </div>
 
-      {/* Department scores */}
       <div className="grid md:grid-cols-3 gap-4">
         {maturityScores.map(s => (
           <button
@@ -114,7 +116,6 @@ export default function Module4() {
         ))}
       </div>
 
-      {/* Detail modal */}
       {selected && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setSelectedDept(null)}>
           <div className="bg-card rounded-xl p-6 md:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-reveal" onClick={e => e.stopPropagation()}>
