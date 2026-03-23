@@ -76,7 +76,7 @@ export default function Module3() {
             </div>
 
             {/* Orphan fluxes */}
-            {fluxData.filter(f => !["Ventes", "Production", "Ingénierie"].some(d => f.description.includes(d.split("é")[0]))).length > 0 && (
+            {fluxData.filter(f => !["Service Client", "Ventes", "Production", "Ingénierie", "Shipping", "Qualité"].some(d => f.description.includes(d.split("é")[0]))).length > 0 && (
               <div className="mt-6 w-full">
                 <p className="text-xs text-muted-foreground mb-2">Flux transversaux</p>
                 <div className="grid md:grid-cols-2 gap-3">
