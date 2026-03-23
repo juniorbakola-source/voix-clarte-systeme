@@ -1,5 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import { kanoReviewData, complaintsByType, complaintsByProblem, complaintsBySourceType, ctqMetrics } from "@/data/interviewData";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell, PieChart, Pie } from "recharts";
 
 const useReveal = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -34,9 +36,9 @@ interface FlowLink {
 }
 
 const nodes: FlowNode[] = [
-  { id: "plaintes", label: "Plaintes\nClients (559)", icon: "📋", group: "source", x: 5, y: 10 },
-  { id: "avis", label: "Avis en Ligne\n& Réseaux (150)", icon: "📡", group: "source", x: 5, y: 28 },
-  { id: "nc-produit", label: "NC Produit\nFini (151)", icon: "⚠️", group: "source", x: 5, y: 46 },
+  { id: "plaintes", label: "Plaintes\nClients (88)", icon: "📋", group: "source", x: 5, y: 10 },
+  { id: "avis", label: "Avis en Ligne\n& Réseaux", icon: "📡", group: "source", x: 5, y: 28 },
+  { id: "nc-produit", label: "NC Produit\nFini", icon: "⚠️", group: "source", x: 5, y: 46 },
   { id: "nc-fournisseur", label: "NC Réception\nFournisseurs", icon: "📦", group: "source", x: 5, y: 64 },
   { id: "reprises", label: "Reprises\nProduction", icon: "🔧", group: "source", x: 5, y: 82 },
 
@@ -90,11 +92,11 @@ const links: FlowLink[] = [
 ];
 
 const groupColors: Record<FlowNode["group"], { bg: string; border: string; text: string }> = {
-  source: { bg: "bg-destructive/15", border: "border-destructive/40", text: "text-destructive" },
-  channel: { bg: "bg-blue-500/15", border: "border-blue-500/40", text: "text-blue-600 dark:text-blue-400" },
-  process: { bg: "bg-amber-500/15", border: "border-amber-500/40", text: "text-amber-700 dark:text-amber-400" },
-  action: { bg: "bg-primary/15", border: "border-primary/40", text: "text-primary" },
-  output: { bg: "bg-emerald-500/15", border: "border-emerald-500/40", text: "text-emerald-700 dark:text-emerald-400" },
+  source: { bg: "bg-red-500/15", border: "border-red-500/40", text: "text-red-700" },
+  channel: { bg: "bg-blue-500/15", border: "border-blue-500/40", text: "text-blue-700" },
+  process: { bg: "bg-amber-500/15", border: "border-amber-500/40", text: "text-amber-700" },
+  action: { bg: "bg-emerald-500/15", border: "border-emerald-500/40", text: "text-emerald-700" },
+  output: { bg: "bg-[hsl(var(--elka-red))]/10", border: "border-[hsl(var(--elka-red))]/40", text: "text-[hsl(var(--elka-red))]" },
 };
 
 const groupLabels: Record<FlowNode["group"], string> = {
@@ -105,12 +107,11 @@ const groupLabels: Record<FlowNode["group"], string> = {
   output: "Tableau de Bord",
 };
 
-// --- System Flow Data ---
 const layers = [
-  { id: "input", label: "ENTRÉE", sub: "Plaintes, NC, Avis", cls: "bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400" },
-  { id: "process", label: "TRAITEMENT", sub: "Kano + CTQ + Score", cls: "bg-primary/10 border-primary/30 text-primary" },
-  { id: "decide", label: "DÉCISION", sub: "Moteur de Priorisation", cls: "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400" },
-  { id: "act", label: "ACTION", sub: "Actions CAPA", cls: "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400" },
+  { id: "input", label: "ENTRÉE", sub: "Plaintes, NC, Avis", cls: "bg-blue-500/10 border-blue-500/30 text-blue-700" },
+  { id: "process", label: "TRAITEMENT", sub: "Kano + CTQ + Score", cls: "bg-amber-500/10 border-amber-500/30 text-amber-700" },
+  { id: "decide", label: "DÉCISION", sub: "Moteur de Priorisation", cls: "bg-[hsl(var(--elka-red))]/10 border-[hsl(var(--elka-red))]/30 text-[hsl(var(--elka-red))]" },
+  { id: "act", label: "ACTION", sub: "Actions CAPA", cls: "bg-emerald-500/10 border-emerald-500/30 text-emerald-700" },
   { id: "output", label: "SORTIE", sub: "KPIs & Métriques", cls: "bg-muted border-border text-foreground" },
 ];
 
@@ -120,11 +121,32 @@ const feedbackLoops = [
   { label: "Revue Gouvernance", desc: "Quotidien (QC) / Hebdo (Direction) / Mensuel (Stratégique)", type: "renforcement" },
 ];
 
+const KANO_COLORS: Record<string, string> = {
+  "Must-be": "hsl(358, 81%, 52%)",
+  "Performance": "hsl(38, 80%, 50%)",
+  "Attractive": "hsl(152, 60%, 40%)",
+  "Indifferent": "hsl(0, 0%, 71%)",
+};
+
+const KANO_BG: Record<string, string> = {
+  "Must-be": "bg-red-100 text-red-800 border-red-200",
+  "Performance": "bg-amber-100 text-amber-800 border-amber-200",
+  "Attractive": "bg-emerald-100 text-emerald-800 border-emerald-200",
+  "Indifferent": "bg-gray-100 text-gray-600 border-gray-200",
+};
+
+const SEVERITY_BADGE: Record<string, string> = {
+  critical: "bg-red-500 text-white",
+  high: "bg-red-400 text-white",
+  medium: "bg-amber-400 text-amber-900",
+  low: "bg-gray-300 text-gray-700",
+};
+
 function AnimatedParticle({ fromNode, toNode, delay }: { fromNode: FlowNode; toNode: FlowNode; delay: number }) {
   return (
     <motion.circle
       r="3"
-      fill="hsl(var(--accent))"
+      fill="hsl(358, 81%, 52%)"
       initial={{ cx: `${fromNode.x}%`, cy: `${fromNode.y}%` }}
       animate={{
         cx: [`${fromNode.x}%`, `${toNode.x}%`],
@@ -145,9 +167,14 @@ function AnimatedParticle({ fromNode, toNode, delay }: { fromNode: FlowNode; toN
 export default function Module6() {
   const [activeNode, setActiveNode] = useState<string | null>(null);
   const [pulseIndex, setPulseIndex] = useState(0);
+  const [selectedKano, setSelectedKano] = useState<(typeof kanoReviewData)[0] | null>(null);
   const r1 = useReveal();
   const r2 = useReveal();
   const r3 = useReveal();
+  const r4 = useReveal();
+  const r5 = useReveal();
+  const r6 = useReveal();
+  const r7 = useReveal();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -170,7 +197,7 @@ export default function Module6() {
       <div ref={r1.ref} className={r1.className}>
         <h3 className="section-title text-xl mb-2">Prochaines étapes — Système VOC cible</h3>
         <p className="text-muted-foreground text-sm mb-6">
-          Vision du système VOC intégré vers lequel l'organisation doit évoluer. Explorez l'écosystème complet et l'architecture cible.
+          Vision du système VOC intégré ELKA Suspension. Architecture cible, priorisation Kano et CTQ identifiés.
         </p>
       </div>
 
@@ -191,29 +218,20 @@ export default function Module6() {
                   <div className="text-[10px] font-bold tracking-widest">{layer.label}</div>
                   <div className="text-[9px] opacity-70 mt-0.5">{layer.sub}</div>
                 </div>
-                {i < layers.length - 1 && (
-                  <span className="text-muted-foreground text-xs">→</span>
-                )}
+                {i < layers.length - 1 && <span className="text-muted-foreground text-xs">→</span>}
               </motion.div>
             ))}
           </div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="border-t border-dashed border-border pt-3 space-y-2"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="border-t border-dashed border-border pt-3 space-y-2">
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2 font-semibold">Boucles de Rétroaction</p>
             <div className="flex flex-wrap gap-2">
               {feedbackLoops.map((loop, i) => (
-                <div key={i} className="flex-1 min-w-[140px] p-2 rounded border border-dashed border-primary/20 bg-primary/5">
+                <div key={i} className="flex-1 min-w-[140px] p-2 rounded border border-dashed border-[hsl(var(--elka-red))]/20 bg-red-50">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-accent text-xs">↺</span>
-                    <span className="text-[10px] font-bold text-primary">{loop.label}</span>
+                    <span className="text-[hsl(var(--elka-red))] text-xs">↺</span>
+                    <span className="text-[10px] font-bold text-foreground">{loop.label}</span>
                   </div>
                   <div className="text-[9px] text-muted-foreground mt-1">{loop.desc}</div>
-                  <div className="text-[8px] text-muted-foreground/60 mt-1 uppercase">Boucle {loop.type}</div>
                 </div>
               ))}
             </div>
@@ -224,10 +242,9 @@ export default function Module6() {
       {/* Ecosystem Diagram */}
       <div ref={r3.ref} className={r3.className}>
         <div className="consulting-card p-4">
-          <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-1">Écosystème VOC — Flux Interactif Complet</p>
+          <p className="text-xs font-semibold text-[hsl(var(--elka-red))] uppercase tracking-widest mb-1">Écosystème VOC — ELKA Suspension — Flux Interactif Complet</p>
           <p className="text-xs text-muted-foreground mb-4">Survolez un nœud pour visualiser ses connexions dans le système.</p>
 
-          {/* Legend */}
           <div className="flex flex-wrap gap-3 mb-4">
             {(Object.keys(groupLabels) as Array<FlowNode["group"]>).map(g => (
               <div key={g} className="flex items-center gap-1.5">
@@ -237,7 +254,6 @@ export default function Module6() {
             ))}
           </div>
 
-          {/* Interactive Diagram */}
           <div className="relative w-full" style={{ paddingBottom: "55%" }}>
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {links.map((link, i) => {
@@ -250,7 +266,7 @@ export default function Module6() {
                     <motion.line
                       x1={`${from.x}%`} y1={`${from.y}%`}
                       x2={`${to.x}%`} y2={`${to.y}%`}
-                      stroke={isFeedback ? "hsl(var(--accent))" : isHighlighted ? "hsl(var(--primary))" : "hsl(var(--border))"}
+                      stroke={isFeedback ? "hsl(358, 81%, 52%)" : isHighlighted ? "hsl(var(--foreground))" : "hsl(var(--border))"}
                       strokeWidth={isHighlighted ? 0.4 : 0.15}
                       strokeDasharray={isFeedback ? "1 1" : undefined}
                       initial={{ pathLength: 0 }}
@@ -263,7 +279,6 @@ export default function Module6() {
               })}
             </svg>
 
-            {/* Nodes */}
             {nodes.map((node, i) => {
               const colors = groupColors[node.group];
               const isPulsing = i === pulseIndex;
@@ -281,7 +296,7 @@ export default function Module6() {
                   whileHover={{ scale: 1.15, zIndex: 50 }}
                 >
                   <div
-                    className={`px-2 py-1.5 rounded border text-center ${colors.bg} ${colors.border} ${isPulsing && !activeNode ? "ring-1 ring-primary/30" : ""} backdrop-blur-sm transition-shadow`}
+                    className={`px-2 py-1.5 rounded border text-center ${colors.bg} ${colors.border} ${isPulsing && !activeNode ? "ring-1 ring-[hsl(var(--elka-red))]/30" : ""} backdrop-blur-sm transition-shadow`}
                     style={{ minWidth: "60px" }}
                   >
                     <div className="text-sm leading-none mb-0.5">{node.icon}</div>
@@ -293,28 +308,26 @@ export default function Module6() {
               );
             })}
 
-            {/* Feedback loop label */}
             <motion.div className="absolute bottom-1 right-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}>
               <div className="flex items-center gap-1.5">
-                <span className="text-accent text-xs">↺</span>
-                <span className="text-[8px] text-accent font-semibold">Boucles de Rétroaction</span>
+                <span className="text-[hsl(var(--elka-red))] text-xs">↺</span>
+                <span className="text-[8px] text-[hsl(var(--elka-red))] font-semibold">Boucles de Rétroaction</span>
               </div>
             </motion.div>
           </div>
 
-          {/* Active node info */}
           <AnimatePresence>
             {activeNode && (
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 5 }}
-                className="mt-3 p-3 rounded border border-primary/20 bg-primary/5"
+                className="mt-3 p-3 rounded border border-[hsl(var(--elka-red))]/20 bg-red-50"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{getNode(activeNode).icon}</span>
                   <div>
-                    <div className="text-xs font-bold text-primary">
+                    <div className="text-xs font-bold text-foreground">
                       {getNode(activeNode).label.replace("\n", " ")}
                     </div>
                     <div className="text-[10px] text-muted-foreground mt-0.5">
@@ -329,13 +342,261 @@ export default function Module6() {
         </div>
       </div>
 
+      {/* ============================================================ */}
+      {/* PRIORISATION KANO — Plaintes Clients */}
+      {/* ============================================================ */}
+      <div ref={r4.ref} className={r4.className}>
+        <div className="consulting-card">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded bg-[hsl(var(--elka-red))] flex items-center justify-center text-white text-xs font-bold">K</div>
+            <div>
+              <p className="text-xs font-bold text-[hsl(var(--elka-red))] uppercase tracking-widest">Priorisation Kano — Plaintes Clients</p>
+              <p className="text-[10px] text-muted-foreground">88 plaintes analysées • Catégorisation par famille de problème • WCM</p>
+            </div>
+          </div>
+
+          {/* Complaints by Type - Pie */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Répartition par type</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={complaintsBySourceType}
+                    dataKey="count"
+                    nameKey="type"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    strokeWidth={2}
+                    stroke="hsl(var(--card))"
+                  >
+                    {complaintsBySourceType.map((_, i) => (
+                      <Cell key={i} fill={["hsl(358,81%,52%)", "hsl(38,80%,50%)", "hsl(0,0%,71%)"][i]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => [`${value} plaintes`, ""]} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {complaintsBySourceType.map((s, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: ["hsl(358,81%,52%)", "hsl(38,80%,50%)", "hsl(0,0%,71%)"][i] }} />
+                    <span className="text-[10px] text-muted-foreground">{s.type} ({s.percentage}%)</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* By Family */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Familles de problèmes</p>
+              <div className="space-y-2">
+                {complaintsByType.map((c, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-medium text-foreground">{c.category}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`wcm-badge border ${KANO_BG[c.kanoClass]}`}>{c.kanoClass}</span>
+                          <span className={`wcm-badge ${SEVERITY_BADGE[c.severity]}`}>{c.count}</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-secondary rounded-full h-1.5">
+                        <div className="h-1.5 rounded-full bg-[hsl(var(--elka-red))]" style={{ width: `${c.percentage}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Top Problems Bar Chart */}
+          <div className="border-t border-border pt-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Top 10 problèmes — Pareto</p>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={complaintsByProblem.slice(0, 10)} layout="vertical" margin={{ left: 120 }}>
+                <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis dataKey="problem" type="category" tick={{ fontSize: 10, fill: "hsl(var(--foreground))" }} width={115} />
+                <Tooltip formatter={(value: number) => [`${value} occurrences`, ""]} />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                  {complaintsByProblem.slice(0, 10).map((entry, i) => (
+                    <Cell key={i} fill={KANO_COLORS[entry.kanoClass] || "hsl(0,0%,71%)"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* PRIORISATION KANO — Avis en Ligne + Interviews */}
+      {/* ============================================================ */}
+      <div ref={r5.ref} className={r5.className}>
+        <div className="consulting-card">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded bg-amber-500 flex items-center justify-center text-white text-xs font-bold">A</div>
+            <div>
+              <p className="text-xs font-bold text-amber-700 uppercase tracking-widest">Priorisation Kano — Avis en Ligne & Interviews</p>
+              <p className="text-[10px] text-muted-foreground">Classification des attributs qualité perçus par le client • Modèle Kano</p>
+            </div>
+          </div>
+
+          {/* Kano Legend */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {Object.entries(KANO_BG).map(([k, cls]) => (
+              <div key={k} className={`wcm-badge border ${cls}`}>
+                {k === "Must-be" ? "🔴 Must-be (Basique)" : k === "Performance" ? "🟡 Performance" : k === "Attractive" ? "🟢 Attractive" : "⚪ Indifférent"}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-3">
+            {kanoReviewData.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => setSelectedKano(item)}
+                className="p-3 rounded-lg border cursor-pointer hover:shadow-md active:scale-[0.99] transition-all bg-card"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-sm font-semibold text-foreground">{item.attribute}</span>
+                      <span className={`wcm-badge border ${KANO_BG[item.kanoClass]}`}>{item.kanoClass}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${
+                      item.sentiment === "Négatif" ? "bg-red-100 text-red-700" : item.sentiment === "Positif" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                    }`}>{item.sentiment}</span>
+                    <span className="text-[9px] text-muted-foreground">{item.source}</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Kano Detail Modal */}
+      <AnimatePresence>
+        {selectedKano && (
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setSelectedKano(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-card rounded-xl p-6 max-w-lg w-full shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className={`wcm-badge border ${KANO_BG[selectedKano.kanoClass]}`}>{selectedKano.kanoClass}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                    selectedKano.sentiment === "Négatif" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                  }`}>{selectedKano.sentiment}</span>
+                </div>
+                <button onClick={() => setSelectedKano(null)} className="p-1 rounded hover:bg-secondary active:scale-95 text-muted-foreground">✕</button>
+              </div>
+              <h4 className="text-lg font-semibold text-foreground mb-2">{selectedKano.attribute}</h4>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-secondary/50 rounded-lg p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Source</p>
+                  <p className="text-sm font-medium text-foreground mt-1">{selectedKano.source}</p>
+                </div>
+                <div className="bg-secondary/50 rounded-lg p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Fréquence</p>
+                  <p className="text-sm font-medium text-foreground mt-1">{selectedKano.frequency}</p>
+                </div>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-[10px] uppercase tracking-wide text-[hsl(var(--elka-red))] font-semibold mb-1">Analyse</p>
+                <p className="text-sm text-foreground/80 leading-relaxed">{selectedKano.description}</p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ============================================================ */}
+      {/* CTQ IDENTIFIÉS */}
+      {/* ============================================================ */}
+      <div ref={r6.ref} className={r6.className}>
+        <div className="consulting-card">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded bg-[hsl(var(--elka-darkgray))] flex items-center justify-center text-white text-xs font-bold">C</div>
+            <div>
+              <p className="text-xs font-bold text-foreground uppercase tracking-widest">CTQ Identifiés — Critical to Quality</p>
+              <p className="text-[10px] text-muted-foreground">Caractéristiques critiques à la qualité dérivées de la Voix du Client • WCM Pillar Quality</p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b-2 border-[hsl(var(--elka-red))]/20">
+                  <th className="text-left py-2 px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">ID</th>
+                  <th className="text-left py-2 px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">CTQ Name</th>
+                  <th className="text-left py-2 px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">KPI Metric</th>
+                  <th className="text-left py-2 px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Unit</th>
+                  <th className="text-left py-2 px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Target</th>
+                  <th className="text-left py-2 px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Département</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ctqMetrics.map((ctq, i) => (
+                  <motion.tr
+                    key={ctq.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.08 }}
+                    className="border-b border-border hover:bg-secondary/50 transition-colors"
+                  >
+                    <td className="py-3 px-3">
+                      <span className="text-[10px] font-mono font-bold text-[hsl(var(--elka-red))]">{ctq.id}</span>
+                    </td>
+                    <td className="py-3 px-3 font-semibold text-foreground text-xs">{ctq.name}</td>
+                    <td className="py-3 px-3 text-xs text-muted-foreground">{ctq.kpiMetric}</td>
+                    <td className="py-3 px-3">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-secondary font-medium">{ctq.unit}</span>
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-medium">{ctq.targetValue}</span>
+                    </td>
+                    <td className="py-3 px-3 text-[11px] text-muted-foreground">{ctq.responsibleDepartment}</td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
+            <p className="text-[10px] uppercase tracking-widest text-amber-700 font-bold mb-1">⚠️ Action requise</p>
+            <p className="text-xs text-amber-800">Les valeurs cibles et actuelles doivent être définies pour chaque CTQ. Sans baseline ni target, aucune mesure d'amélioration n'est possible.</p>
+          </div>
+        </div>
+      </div>
+
       {/* Call to action */}
-      <div className="bg-primary text-primary-foreground rounded-xl p-8 text-center">
-        <p className="text-lg md:text-xl font-medium leading-relaxed max-w-2xl mx-auto">
-          « La transformation VOC n'est pas un projet IT.<br/>
-          <span className="text-accent font-bold">C'est un changement de culture organisationnelle.</span> »
-        </p>
-        <p className="text-sm text-primary-foreground/60 mt-4">Prêts à passer du mode réactif au mode prédictif ?</p>
+      <div ref={r7.ref} className={r7.className}>
+        <div className="bg-[hsl(var(--elka-darkgray))] text-white rounded-xl p-8 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 rounded bg-[hsl(var(--elka-red))] flex items-center justify-center text-white font-bold text-xl">E</div>
+          </div>
+          <p className="text-lg md:text-xl font-medium leading-relaxed max-w-2xl mx-auto">
+            « La transformation VOC n'est pas un projet IT.<br/>
+            <span className="text-[hsl(var(--elka-red))] font-bold">C'est un changement de culture organisationnelle.</span> »
+          </p>
+          <p className="text-sm text-white/50 mt-4">ELKA Suspension — World Class Manufacturing</p>
+          <p className="text-xs text-white/30 mt-2">Prêts à passer du mode réactif au mode prédictif ?</p>
+        </div>
       </div>
     </div>
   );
