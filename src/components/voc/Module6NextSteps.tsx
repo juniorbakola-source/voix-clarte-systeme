@@ -108,11 +108,11 @@ const groupLabels: Record<FlowNode["group"], string> = {
 };
 
 const layers = [
-  { id: "input", label: "ENTRÉE", sub: "Plaintes, NC, Avis", cls: "bg-blue-500/10 border-blue-500/30 text-blue-700" },
-  { id: "process", label: "TRAITEMENT", sub: "Kano + CTQ + Score", cls: "bg-amber-500/10 border-amber-500/30 text-amber-700" },
-  { id: "decide", label: "DÉCISION", sub: "Moteur de Priorisation", cls: "bg-[hsl(var(--elka-red))]/10 border-[hsl(var(--elka-red))]/30 text-[hsl(var(--elka-red))]" },
-  { id: "act", label: "ACTION", sub: "Actions CAPA", cls: "bg-emerald-500/10 border-emerald-500/30 text-emerald-700" },
-  { id: "output", label: "SORTIE", sub: "KPIs & Métriques", cls: "bg-muted border-border text-foreground" },
+  { id: "input", label: "ENTRÉE", sub: "Plaintes, NC, Avis", cls: "bg-[hsl(15,55%,45%)]/10 border-[hsl(15,55%,45%)]/30 text-[hsl(15,55%,35%)]" },
+  { id: "process", label: "TRAITEMENT", sub: "Kano + CTQ + Score", cls: "bg-[hsl(40,65%,50%)]/10 border-[hsl(40,65%,50%)]/30 text-[hsl(40,65%,35%)]" },
+  { id: "decide", label: "DÉCISION", sub: "Moteur de Priorisation", cls: "bg-[hsl(358,81%,52%)]/10 border-[hsl(358,81%,52%)]/30 text-[hsl(358,81%,52%)]" },
+  { id: "act", label: "ACTION", sub: "Actions CAPA", cls: "bg-[hsl(185,70%,30%)]/10 border-[hsl(185,70%,30%)]/30 text-[hsl(185,70%,22%)]" },
+  { id: "output", label: "SORTIE", sub: "KPIs & Métriques", cls: "bg-[hsl(152,40%,42%)]/10 border-[hsl(152,40%,42%)]/30 text-[hsl(152,40%,30%)]" },
 ];
 
 const feedbackLoops = [
