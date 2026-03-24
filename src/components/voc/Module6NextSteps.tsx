@@ -92,11 +92,11 @@ const links: FlowLink[] = [
 ];
 
 const groupColors: Record<FlowNode["group"], { bg: string; border: string; text: string }> = {
-  source: { bg: "bg-red-500/15", border: "border-red-500/40", text: "text-red-700" },
-  channel: { bg: "bg-blue-500/15", border: "border-blue-500/40", text: "text-blue-700" },
-  process: { bg: "bg-amber-500/15", border: "border-amber-500/40", text: "text-amber-700" },
-  action: { bg: "bg-emerald-500/15", border: "border-emerald-500/40", text: "text-emerald-700" },
-  output: { bg: "bg-[hsl(var(--elka-red))]/10", border: "border-[hsl(var(--elka-red))]/40", text: "text-[hsl(var(--elka-red))]" },
+  source: { bg: "bg-[hsl(15,55%,45%)]/15", border: "border-[hsl(15,55%,45%)]/50", text: "text-[hsl(15,55%,35%)]" },
+  channel: { bg: "bg-[hsl(205,60%,30%)]/15", border: "border-[hsl(205,60%,30%)]/50", text: "text-[hsl(205,60%,25%)]" },
+  process: { bg: "bg-[hsl(40,65%,50%)]/15", border: "border-[hsl(40,65%,50%)]/50", text: "text-[hsl(40,65%,35%)]" },
+  action: { bg: "bg-[hsl(185,70%,30%)]/15", border: "border-[hsl(185,70%,30%)]/50", text: "text-[hsl(185,70%,22%)]" },
+  output: { bg: "bg-[hsl(152,40%,42%)]/15", border: "border-[hsl(152,40%,42%)]/50", text: "text-[hsl(152,40%,30%)]" },
 };
 
 const groupLabels: Record<FlowNode["group"], string> = {
