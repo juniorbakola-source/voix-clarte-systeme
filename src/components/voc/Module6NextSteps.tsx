@@ -146,7 +146,7 @@ function AnimatedParticle({ fromNode, toNode, delay }: { fromNode: FlowNode; toN
   return (
     <motion.circle
       r="3"
-      fill="hsl(358, 81%, 52%)"
+      fill="hsl(40, 65%, 50%)"
       initial={{ cx: `${fromNode.x}%`, cy: `${fromNode.y}%` }}
       animate={{
         cx: [`${fromNode.x}%`, `${toNode.x}%`],
