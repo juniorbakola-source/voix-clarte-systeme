@@ -480,12 +480,12 @@ export interface CTQMetric {
 }
 
 export const ctqMetrics: CTQMetric[] = [
-  { id: "CTQ-0001", name: "Reliability", categoryId: "VOCAT-001", kpiMetric: "Failure rate", targetValue: "—", currentValue: "—", unit: "PPM", responsibleDepartment: "Quality / Engineering" },
-  { id: "CTQ-0002", name: "Performance", categoryId: "VOCAT-002", kpiMetric: "Damping coefficient", targetValue: "—", currentValue: "—", unit: "—", responsibleDepartment: "Engineering" },
-  { id: "CTQ-0003", name: "Delivery", categoryId: "VOCAT-003", kpiMetric: "Lead time", targetValue: "—", currentValue: "—", unit: "Days", responsibleDepartment: "Shipping" },
-  { id: "CTQ-0004", name: "Order accuracy", categoryId: "VOCAT-004", kpiMetric: "Shipment error rate", targetValue: "—", currentValue: "—", unit: "%", responsibleDepartment: "Sales / Customer Service" },
-  { id: "CTQ-0005", name: "Customer satisfaction", categoryId: "VOCAT-006", kpiMetric: "NPS", targetValue: "—", currentValue: "—", unit: "Score", responsibleDepartment: "Customer Service" },
-  { id: "CTQ-0006", name: "Price / Cost of quality", categoryId: "VOCAT-005", kpiMetric: "Claim cost", targetValue: "—", currentValue: "—", unit: "$", responsibleDepartment: "Sales / Finance" },
+  { id: "CTQ-0001", name: "Fiabilité", categoryId: "VOCAT-001", kpiMetric: "Taux de défaillance", targetValue: "—", currentValue: "—", unit: "PPM", responsibleDepartment: "Qualité / Ingénierie" },
+  { id: "CTQ-0002", name: "Performance", categoryId: "VOCAT-002", kpiMetric: "Coefficient d'amortissement", targetValue: "—", currentValue: "—", unit: "—", responsibleDepartment: "Ingénierie" },
+  { id: "CTQ-0003", name: "Livraison", categoryId: "VOCAT-003", kpiMetric: "Délai de livraison", targetValue: "—", currentValue: "—", unit: "Jours", responsibleDepartment: "Expédition" },
+  { id: "CTQ-0004", name: "Exactitude des commandes", categoryId: "VOCAT-004", kpiMetric: "Taux d'erreur d'expédition", targetValue: "—", currentValue: "—", unit: "%", responsibleDepartment: "Ventes / Service Client" },
+  { id: "CTQ-0005", name: "Satisfaction client", categoryId: "VOCAT-005", kpiMetric: "NPS", targetValue: "—", currentValue: "—", unit: "Score", responsibleDepartment: "Service Client" },
+  { id: "CTQ-0006", name: "Prix / Coût de la qualité", categoryId: "VOCAT-006", kpiMetric: "Coût des réclamations", targetValue: "—", currentValue: "—", unit: "$", responsibleDepartment: "Ventes / Finance" },
 ];
 
 // --- Kano Online Reviews Categorization ---
