@@ -533,8 +533,8 @@ export default function Module6() {
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 rounded bg-[hsl(var(--elka-darkgray))] flex items-center justify-center text-white text-xs font-bold">C</div>
             <div>
-              <p className="text-xs font-bold text-foreground uppercase tracking-widest">CTQ Identifiés — Critical to Quality</p>
-              <p className="text-[10px] text-muted-foreground">Caractéristiques critiques à la qualité dérivées de la Voix du Client • WCM Pillar Quality</p>
+              <p className="text-xs font-bold text-foreground uppercase tracking-widest">Caractéristiques critiques identifiées — Critiques à la qualité</p>
+              <p className="text-[10px] text-muted-foreground">Caractéristiques critiques à la qualité dérivées de la Voix du Client • Pilier Qualité WCM</p>
             </div>
           </div>
 
