@@ -98,13 +98,14 @@ export default function Index() {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !activeCamera) return;
-    if (activeCamera.protocol === "hls") {
-      video.src = `${PROXY}/?url=${encodeURIComponent(activeCamera.url)}`;
+    const selected = activeCamera || fallbackCameras[0];
+    if (!video || !selected) return;
+    if (selected.protocol === "hls") {
+      video.src = `${PROXY}/?url=${encodeURIComponent(selected.url)}`;
       return;
     }
-    if (activeCamera.protocol === "mp4") {
-      video.src = activeCamera.url;
+    if (selected.protocol === "mp4") {
+      video.src = selected.url;
     }
   }, [activeCamera]);
 
@@ -191,6 +192,8 @@ export default function Index() {
 
   const canAdmin = profile.role === "admin";
   const canConnectors = profile.role === "admin" || profile.role === "operator";
+  const visibleCameras = cameras.length ? cameras : fallbackCameras;
+  const selectedCamera = activeCamera || visibleCameras[0] || null;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex">
@@ -246,7 +249,7 @@ export default function Index() {
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-2xl bg-slate-800 p-4 grid gap-3">
                 <h2 className="text-lg font-semibold">Caméras</h2>
-                {cameras.map((cam) => (
+                {visibleCameras.map((cam) => (
                   <button key={cam.id} onClick={() => setActiveCamera(cam)} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-left">
                     {cam.name} , {cam.zone}
                   </button>
@@ -264,13 +267,13 @@ export default function Index() {
               <div className="rounded-2xl bg-slate-800 p-4 grid gap-4">
                 <h2 className="text-lg font-semibold">Player HLS</h2>
                 <div className="rounded-2xl bg-black min-h-[320px] overflow-hidden grid place-items-center">
-                  {activeCamera && ["hls", "mp4"].includes(activeCamera.protocol) ? (
+                  {selectedCamera && ["hls", "mp4"].includes(selectedCamera.protocol) ? (
                     <video ref={videoRef} controls autoPlay muted playsInline className="w-full h-full object-cover" />
                   ) : (
                     <div className="text-slate-400">Choisis une caméra HLS ou MP4</div>
                   )}
                 </div>
-                <div className="text-sm text-slate-400">{activeCamera ? `${activeCamera.name} , ${activeCamera.zone}` : "aucune caméra sélectionnée"}</div>
+                <div className="text-sm text-slate-400">{selectedCamera ? `${selectedCamera.name} , ${selectedCamera.zone}` : "aucune caméra sélectionnée"}</div>
               </div>
             </div>
           )}
