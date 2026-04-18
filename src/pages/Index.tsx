@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 const API = "http://localhost:8787";
 const PROXY = "http://localhost:8790";
 const API_KEY = "super-secret-key";
+const FALLBACK_VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 
 type Role = "admin" | "operator" | "viewer";
 
@@ -35,6 +36,24 @@ const fallbackProfiles: Record<string, UserProfile> = {
   viewer: { username: "viewer", role: "viewer", zones: ["Parking Est"] },
 };
 
+const fallbackSources: Source[] = [
+  { id: 'cam-left-side-home', type: 'camera', label: 'Left side home', zone: 'Maison - côté gauche', status: 'demo' },
+  { id: 'sat-demo', type: 'satellite', label: 'Satellite Demo', zone: 'Zone test', status: 'mock' },
+  { id: 'flight-demo', type: 'flight', label: 'AFR662', zone: 'Air corridor', status: 'mock' },
+];
+
+const fallbackCameras: Camera[] = [
+  { id: 'cam-left-side-home-mp4', name: 'Left side home', protocol: 'mp4', url: FALLBACK_VIDEO, zone: 'Maison - côté gauche' },
+];
+
+const fallbackConnectors = {
+  palantir: { enabled: false, ready: false },
+  cameras: { enabled: true, ready: true, protocols: ['hls', 'mp4', 'webrtc', 'rtsp'] },
+  satellite: { enabled: false, ready: false },
+  flights: { enabled: false, ready: false },
+  palantirAdapter: { enabled: false, baseUrl: null, authType: null, hasResources: false, hasMapping: false },
+};
+
 const views = ["dashboard", "cameras", "auth", "connectors", "settings", "registry", "palantir"] as const;
 
 type View = typeof views[number];
@@ -46,12 +65,12 @@ export default function Index() {
   const [token, setToken] = useState("");
   const [profile, setProfile] = useState<UserProfile>(fallbackProfiles.admin);
   const [context, setContext] = useState<any>({ mission: "Port surveillance", confidence: 98.2, latencySeconds: 12 });
-  const [sources, setSources] = useState<Source[]>([]);
-  const [cameras, setCameras] = useState<Camera[]>([]);
-  const [connectors, setConnectors] = useState<any>({});
+  const [sources, setSources] = useState<Source[]>(fallbackSources);
+  const [cameras, setCameras] = useState<Camera[]>(fallbackCameras);
+  const [connectors, setConnectors] = useState<any>(fallbackConnectors);
   const [settings, setSettings] = useState({ palantirBaseUrl: "", palantirWorkspace: "", satelliteProvider: "", flightProvider: "", securityMode: "strict" });
   const [testResults, setTestResults] = useState<any>({});
-  const [activeCamera, setActiveCamera] = useState<Camera | null>(null);
+  const [activeCamera, setActiveCamera] = useState<Camera | null>(fallbackCameras[0]);
   const [cameraForm, setCameraForm] = useState({ name: "", protocol: "hls", url: "", zone: "" });
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -79,8 +98,14 @@ export default function Index() {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !activeCamera || activeCamera.protocol !== "hls") return;
-    video.src = `${PROXY}/?url=${encodeURIComponent(activeCamera.url)}`;
+    if (!video || !activeCamera) return;
+    if (activeCamera.protocol === "hls") {
+      video.src = `${PROXY}/?url=${encodeURIComponent(activeCamera.url)}`;
+      return;
+    }
+    if (activeCamera.protocol === "mp4") {
+      video.src = activeCamera.url;
+    }
   }, [activeCamera]);
 
   async function fetchJson(path: string) {
@@ -89,30 +114,37 @@ export default function Index() {
   }
 
   async function refreshData() {
-    const [me, ctx, src, cams, conn] = await Promise.all([
-      fetchJson("/api/auth/me"),
-      fetchJson("/api/context"),
-      fetchJson("/api/sources"),
-      fetchJson("/api/cameras"),
-      fetchJson("/api/connectors"),
-    ]);
-    if (me?.user) setProfile(me.user);
-    if (!ctx?.error) setContext(ctx);
-    if (src?.items) setSources(src.items);
-    if (cams?.cameras) {
-      setCameras(cams.cameras);
-      if (cams.cameras[0]) setActiveCamera(cams.cameras[0]);
-    }
-    if (!conn?.error) {
-      setConnectors(conn);
-      const cfg = conn.config || {};
-      setSettings({
-        palantirBaseUrl: cfg.palantir?.baseUrl || "",
-        palantirWorkspace: cfg.palantir?.workspace || "",
-        satelliteProvider: cfg.satellite?.provider || "",
-        flightProvider: cfg.flights?.provider || "",
-        securityMode: cfg.security?.mode || "strict",
-      });
+    try {
+      const [me, ctx, src, cams, conn] = await Promise.all([
+        fetchJson("/api/auth/me"),
+        fetchJson("/api/context"),
+        fetchJson("/api/sources"),
+        fetchJson("/api/cameras"),
+        fetchJson("/api/connectors"),
+      ]);
+      if (me?.user) setProfile(me.user);
+      if (!ctx?.error) setContext(ctx);
+      if (src?.items?.length) setSources(src.items);
+      if (cams?.cameras?.length) {
+        setCameras(cams.cameras);
+        setActiveCamera(cams.cameras[0]);
+      }
+      if (!conn?.error) {
+        setConnectors(conn);
+        const cfg = conn.config || {};
+        setSettings({
+          palantirBaseUrl: cfg.palantir?.baseUrl || "",
+          palantirWorkspace: cfg.palantir?.workspace || "",
+          satelliteProvider: cfg.satellite?.provider || "",
+          flightProvider: cfg.flights?.provider || "",
+          securityMode: cfg.security?.mode || "strict",
+        });
+      }
+    } catch {
+      setSources(fallbackSources);
+      setCameras(fallbackCameras);
+      setActiveCamera(fallbackCameras[0]);
+      setConnectors(fallbackConnectors);
     }
   }
 
@@ -232,10 +264,10 @@ export default function Index() {
               <div className="rounded-2xl bg-slate-800 p-4 grid gap-4">
                 <h2 className="text-lg font-semibold">Player HLS</h2>
                 <div className="rounded-2xl bg-black min-h-[320px] overflow-hidden grid place-items-center">
-                  {activeCamera?.protocol === "hls" ? (
+                  {activeCamera && ["hls", "mp4"].includes(activeCamera.protocol) ? (
                     <video ref={videoRef} controls autoPlay muted playsInline className="w-full h-full object-cover" />
                   ) : (
-                    <div className="text-slate-400">Choisis une caméra HLS</div>
+                    <div className="text-slate-400">Choisis une caméra HLS ou MP4</div>
                   )}
                 </div>
                 <div className="text-sm text-slate-400">{activeCamera ? `${activeCamera.name} , ${activeCamera.zone}` : "aucune caméra sélectionnée"}</div>
