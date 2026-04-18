@@ -249,11 +249,13 @@ export default function Index() {
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-2xl bg-slate-800 p-4 grid gap-3">
                 <h2 className="text-lg font-semibold">Caméras</h2>
-                {visibleCameras.map((cam) => (
+                {visibleCameras.length ? visibleCameras.map((cam) => (
                   <button key={cam.id} onClick={() => setActiveCamera(cam)} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-left">
                     {cam.name} , {cam.zone}
                   </button>
-                ))}
+                )) : (
+                  <div className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-left">Left side home , Maison - côté gauche</div>
+                )}
                 <div className="grid gap-2 mt-4">
                   <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" placeholder="Nom" value={cameraForm.name} onChange={(e) => setCameraForm({ ...cameraForm, name: e.target.value })} />
                   <select className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" value={cameraForm.protocol} onChange={(e) => setCameraForm({ ...cameraForm, protocol: e.target.value })}>
@@ -267,13 +269,9 @@ export default function Index() {
               <div className="rounded-2xl bg-slate-800 p-4 grid gap-4">
                 <h2 className="text-lg font-semibold">Player HLS</h2>
                 <div className="rounded-2xl bg-black min-h-[320px] overflow-hidden grid place-items-center">
-                  {selectedCamera && ["hls", "mp4"].includes(selectedCamera.protocol) ? (
-                    <video ref={videoRef} controls autoPlay muted playsInline className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="text-slate-400">Choisis une caméra HLS ou MP4</div>
-                  )}
+                  <video ref={videoRef} controls autoPlay muted playsInline poster="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover" />
                 </div>
-                <div className="text-sm text-slate-400">{selectedCamera ? `${selectedCamera.name} , ${selectedCamera.zone}` : "aucune caméra sélectionnée"}</div>
+                <div className="text-sm text-slate-400">{selectedCamera ? `${selectedCamera.name} , ${selectedCamera.zone}` : "Left side home , Maison - côté gauche"}</div>
               </div>
             </div>
           )}
