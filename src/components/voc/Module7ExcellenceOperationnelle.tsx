@@ -35,11 +35,7 @@ export default function Module7ExcellenceOperationnelle() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-              {[
-                { icon: Target, label: "Clarté", text: "Priorités visibles" },
-                { icon: Gauge, label: "Discipline", text: "Routines quotidiennes" },
-                { icon: Users, label: "Engagement", text: "Ownership terrain" },
-              ].map((item) => (
+              {oePillars.map((item) => (
                 <div key={item.label} className="rounded-md border border-[hsl(var(--primary-foreground))]/12 bg-[hsl(var(--primary-foreground))]/6 p-4">
                   <item.icon className="mb-3 h-5 w-5 text-[hsl(var(--elka-red))]" />
                   <p className="text-sm font-semibold">{item.label}</p>
@@ -73,8 +69,8 @@ export default function Module7ExcellenceOperationnelle() {
               <button onClick={() => setCurrent((value) => Math.max(0, value - 1))} className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[hsl(var(--primary-foreground))]/15 bg-[hsl(var(--primary-foreground))]/8 transition hover:bg-[hsl(var(--primary-foreground))]/14" aria-label="Slide précédente">
                 <ArrowLeft className="h-4 w-4" />
               </button>
-              <span className="text-xs text-[hsl(var(--primary-foreground))]/45">{current + 1} / {slides.length}</span>
-              <button onClick={() => setCurrent((value) => Math.min(slides.length - 1, value + 1))} className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))] transition hover:opacity-90" aria-label="Slide suivante">
+              <span className="text-xs text-[hsl(var(--primary-foreground))]/45">{current + 1} / {oeSlides.length}</span>
+              <button onClick={() => setCurrent((value) => Math.min(oeSlides.length - 1, value + 1))} className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))] transition hover:opacity-90" aria-label="Slide suivante">
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -84,16 +80,19 @@ export default function Module7ExcellenceOperationnelle() {
 
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="consulting-card">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Mécanique gamifiée</p>
-          <h3 className="section-title mb-4 text-2xl">La première bouchée</h3>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">The OE Game</p>
+          <h3 className="section-title mb-4 text-2xl">The Bite System</h3>
           <div className="mb-5 flex items-end gap-3">
             <span className="score-display text-6xl text-[hsl(var(--elka-red))]">{score}</span>
             <span className="pb-2 text-sm text-muted-foreground">/ 100 points</span>
           </div>
           <div className="space-y-2">
-            {scoreRules.map((rule, index) => (
+            {gameLevels.map((rule, index) => (
               <button key={rule.label} onClick={() => toggleRule(index)} className="flex w-full items-center justify-between rounded-md border border-[hsl(var(--border))] bg-card px-4 py-3 text-left transition hover:bg-secondary">
-                <span className="text-sm font-medium">{rule.label}</span>
+                <span>
+                  <span className="block text-sm font-semibold">{rule.title}</span>
+                  <span className="block text-xs text-muted-foreground">{rule.level} · {rule.mission}</span>
+                </span>
                 <span className={`rounded px-2 py-1 text-xs font-bold ${checked.includes(index) ? "bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "bg-secondary text-secondary-foreground"}`}>+{rule.points}</span>
               </button>
             ))}
@@ -101,11 +100,26 @@ export default function Module7ExcellenceOperationnelle() {
         </div>
 
         <div className="consulting-card">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Dashboard live projeté</p>
+          <div className="mb-5 grid gap-3 md:grid-cols-2">
+            {scoreboardTeams.map((team) => (
+              <div key={team.team} className="rounded-md border border-[hsl(var(--border))] bg-secondary/40 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="font-semibold text-foreground">{team.team}</p>
+                  <span className="score-display text-2xl text-[hsl(var(--elka-red))]">{totalTeamScore(team)}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  <span>Clarté {team.clarity}</span><span>Action {team.action}</span><span>Impact {team.impact}</span>
+                </div>
+              </div>
+            ))}
+          </div>
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Traduction par département</p>
           <div className="grid gap-3 md:grid-cols-2">
             {departments.map((dept) => (
               <div key={dept.name} className="rounded-md border border-[hsl(var(--border))] bg-secondary/40 p-4">
                 <p className="mb-2 font-semibold text-foreground">{dept.name}</p>
+                <p className="text-sm text-muted-foreground">Éléphant : <span className="font-medium text-foreground">{dept.elephant}</span></p>
                 <p className="text-sm text-muted-foreground">Bouchée : <span className="font-medium text-foreground">{dept.bite}</span></p>
                 <p className="mt-2 text-xs text-muted-foreground">KPI : {dept.kpi}</p>
                 <p className="text-xs text-[hsl(var(--elka-red))]">Rituel : {dept.tool}</p>
