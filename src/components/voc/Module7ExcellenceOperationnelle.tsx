@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Flame, Smartphone, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, Trophy } from "lucide-react";
 import { departments, gameLevels, oePillars, oeSlides, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 
 export default function Module7ExcellenceOperationnelle() {
@@ -88,7 +88,7 @@ export default function Module7ExcellenceOperationnelle() {
           </div>
           <div className="space-y-2">
             {gameLevels.map((rule, index) => (
-              <button key={rule.label} onClick={() => toggleRule(index)} className="flex w-full items-center justify-between rounded-md border border-[hsl(var(--border))] bg-card px-4 py-3 text-left transition hover:bg-secondary">
+              <button key={rule.title} onClick={() => toggleRule(index)} className="flex w-full items-center justify-between rounded-md border border-[hsl(var(--border))] bg-card px-4 py-3 text-left transition hover:bg-secondary">
                 <span>
                   <span className="block text-sm font-semibold">{rule.title}</span>
                   <span className="block text-xs text-muted-foreground">{rule.level} · {rule.mission}</span>
