@@ -1,286 +1,90 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import Module1 from "@/components/voc/Module1ChocExecutif";
+import Module2 from "@/components/voc/Module2RealiteTerrain";
+import Module3 from "@/components/voc/Module3Cartographie";
+import Module4 from "@/components/voc/Module4Maturite";
+import Module5 from "@/components/voc/Module5Lacunes";
+import Module6 from "@/components/voc/Module6NextSteps";
+import Module7ExcellenceOperationnelle from "@/components/voc/Module7ExcellenceOperationnelle";
 
-const API = "http://localhost:8787";
-const PROXY = "http://localhost:8790";
-const API_KEY = "super-secret-key";
+const modules = [
+  { id: "choc", label: "Choc exécutif", eyebrow: "Diagnostic VOC", component: Module1 },
+  { id: "terrain", label: "Réalité terrain", eyebrow: "Verbatim", component: Module2 },
+  { id: "flux", label: "Cartographie des flux", eyebrow: "Système actuel", component: Module3 },
+  { id: "maturite", label: "Évaluation de maturité", eyebrow: "Score VOC", component: Module4 },
+  { id: "lacunes", label: "Lacunes critiques", eyebrow: "Heatmap", component: Module5 },
+  { id: "next", label: "Next steps", eyebrow: "VOC Velocity", component: Module6 },
+  { id: "oe", label: "Excellence Opérationnelle", eyebrow: "World Class", component: Module7ExcellenceOperationnelle },
+] as const;
 
-type Role = "admin" | "operator" | "viewer";
-
-type UserProfile = {
-  username: string;
-  role: Role;
-  zones: string[];
-};
-
-type Camera = {
-  id: string;
-  name: string;
-  protocol: string;
-  url: string;
-  zone: string;
-  createdAt?: string;
-};
-
-type Source = {
-  id: string;
-  type: string;
-  label: string;
-  zone: string;
-  status: string;
-};
-
-const fallbackProfiles: Record<string, UserProfile> = {
-  admin: { username: "admin", role: "admin", zones: ["*"] },
-  "ops-port": { username: "ops-port", role: "operator", zones: ["Port / Quai nord", "Parking Est"] },
-  viewer: { username: "viewer", role: "viewer", zones: ["Parking Est"] },
-};
-
-const views = ["dashboard", "cameras", "auth", "connectors", "settings", "registry", "palantir"] as const;
-
-type View = typeof views[number];
+type ModuleId = typeof modules[number]["id"];
 
 export default function Index() {
-  const [view, setView] = useState<View>("dashboard");
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("change-me");
-  const [token, setToken] = useState("");
-  const [profile, setProfile] = useState<UserProfile>(fallbackProfiles.admin);
-  const [context, setContext] = useState<any>({ mission: "Port surveillance", confidence: 98.2, latencySeconds: 12 });
-  const [sources, setSources] = useState<Source[]>([]);
-  const [cameras, setCameras] = useState<Camera[]>([]);
-  const [connectors, setConnectors] = useState<any>({});
-  const [settings, setSettings] = useState({ palantirBaseUrl: "", palantirWorkspace: "", satelliteProvider: "", flightProvider: "", securityMode: "strict" });
-  const [testResults, setTestResults] = useState<any>({});
-  const [activeCamera, setActiveCamera] = useState<Camera | null>(null);
-  const [cameraForm, setCameraForm] = useState({ name: "", protocol: "hls", url: "", zone: "" });
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  const headers = {
-    "Content-Type": "application/json",
-    "X-API-Key": API_KEY,
-    "X-User": profile.username,
-    "X-Session-Token": token,
-  };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("opsvision-react-user");
-    const storedToken = localStorage.getItem("opsvision-react-token");
-    if (storedUser && fallbackProfiles[storedUser]) {
-      setUsername(storedUser);
-      setProfile(fallbackProfiles[storedUser]);
-    }
-    if (storedToken) setToken(storedToken);
-  }, []);
-
-  useEffect(() => {
-    if (!token) return;
-    void refreshData();
-  }, [token, profile.username]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !activeCamera || activeCamera.protocol !== "hls") return;
-    video.src = `${PROXY}/?url=${encodeURIComponent(activeCamera.url)}`;
-  }, [activeCamera]);
-
-  async function fetchJson(path: string) {
-    const res = await fetch(`${API}${path}`, { headers });
-    return res.json();
-  }
-
-  async function refreshData() {
-    const [me, ctx, src, cams, conn] = await Promise.all([
-      fetchJson("/api/auth/me"),
-      fetchJson("/api/context"),
-      fetchJson("/api/sources"),
-      fetchJson("/api/cameras"),
-      fetchJson("/api/connectors"),
-    ]);
-    if (me?.user) setProfile(me.user);
-    if (!ctx?.error) setContext(ctx);
-    if (src?.items) setSources(src.items);
-    if (cams?.cameras) {
-      setCameras(cams.cameras);
-      if (cams.cameras[0]) setActiveCamera(cams.cameras[0]);
-    }
-    if (!conn?.error) {
-      setConnectors(conn);
-      const cfg = conn.config || {};
-      setSettings({
-        palantirBaseUrl: cfg.palantir?.baseUrl || "",
-        palantirWorkspace: cfg.palantir?.workspace || "",
-        satelliteProvider: cfg.satellite?.provider || "",
-        flightProvider: cfg.flights?.provider || "",
-        securityMode: cfg.security?.mode || "strict",
-      });
-    }
-  }
-
-  async function login() {
-    const res = await fetch(`${API}/api/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-    if (data.error) return alert(data.message || data.error);
-    setToken(data.token);
-    setProfile(data.user);
-    localStorage.setItem("opsvision-react-user", data.user.username);
-    localStorage.setItem("opsvision-react-token", data.token);
-  }
-
-  function logout() {
-    setToken("");
-    setProfile(fallbackProfiles.viewer);
-    localStorage.removeItem("opsvision-react-user");
-    localStorage.removeItem("opsvision-react-token");
-  }
-
-  async function addCamera() {
-    const res = await fetch(`${API}/api/cameras`, { method: "POST", headers, body: JSON.stringify(cameraForm) });
-    const data = await res.json();
-    if (data.error) return alert(data.message || data.error);
-    setCameraForm({ name: "", protocol: "hls", url: "", zone: "" });
-    await refreshData();
-  }
-
-  async function saveSettings() {
-    const res = await fetch(`${API}/api/connectors`, { method: "POST", headers, body: JSON.stringify(settings) });
-    const data = await res.json();
-    setTestResults((prev) => ({ ...prev, save: data }));
-    await refreshData();
-  }
-
-  async function testConnector(kind: "palantir" | "satellite" | "flights") {
-    const data = await fetchJson(`/api/${kind}/test`);
-    setTestResults((prev) => ({ ...prev, [kind]: data }));
-  }
-
-  const canAdmin = profile.role === "admin";
-  const canConnectors = profile.role === "admin" || profile.role === "operator";
+  const [active, setActive] = useState<ModuleId>("oe");
+  const selectedIndex = modules.findIndex((module) => module.id === active);
+  const selected = modules[selectedIndex] ?? modules[0];
+  const ActiveComponent = selected.component;
+  const progress = useMemo(() => ((selectedIndex + 1) / modules.length) * 100, [selectedIndex]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex">
-      <aside className="w-72 bg-slate-900 border-r border-slate-800 p-4 flex flex-col gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">OpsVision</h1>
-          <p className="text-sm text-slate-400">voix-clarte-systeme → overwritten with OpsVision</p>
+    <main className="min-h-screen bg-background text-foreground">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-sidebar-border bg-sidebar p-5 text-sidebar-foreground lg:flex lg:flex-col">
+        <div className="mb-8">
+          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground font-bold">E</div>
+          <h1 className="text-xl font-bold text-sidebar-primary-foreground">ELKA VOC System</h1>
+          <p className="mt-1 text-xs text-sidebar-foreground/60">Diagnostic, priorisation et excellence opérationnelle.</p>
         </div>
-        <div className="grid gap-2">
-          {views.map((item) => (
+
+        <nav className="space-y-2">
+          {modules.map((module, index) => (
             <button
-              key={item}
-              onClick={() => setView(item)}
-              className={`rounded-xl px-4 py-3 text-left border ${view === item ? "bg-blue-600 border-blue-500" : "bg-slate-800 border-slate-700"}`}
+              key={module.id}
+              onClick={() => setActive(module.id)}
+              className={`nav-item w-full text-left ${active === module.id ? "nav-item-active" : "nav-item-inactive"}`}
             >
-              {item}
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-sidebar-border text-[10px] font-bold">{index + 1}</span>
+              <span>
+                <span className="block font-semibold">{module.label}</span>
+                <span className="block text-[10px] uppercase tracking-[0.16em] opacity-60">{module.eyebrow}</span>
+              </span>
             </button>
           ))}
-        </div>
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-4 grid gap-2">
-          <h2 className="font-semibold">Session</h2>
-          <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" />
-          <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="password" />
-          <button className="rounded-lg bg-blue-600 px-3 py-2" onClick={login}>Login</button>
-          <button className="rounded-lg bg-slate-700 px-3 py-2" onClick={logout}>Logout</button>
-          <div className="text-xs text-slate-400">user: {profile.username} | role: {profile.role}</div>
-        </div>
+        </nav>
       </aside>
 
-      <main className="flex-1 p-4 grid grid-rows-[72px_1fr] gap-4">
-        <header className="rounded-2xl border border-slate-800 bg-slate-900 p-4 flex items-center justify-between">
-          <div className="text-slate-300">Mission: {context.mission || "Port surveillance"}</div>
-          <div className="flex gap-2 text-xs">
-            <span className="rounded-full bg-slate-800 px-3 py-1">user: {profile.username}</span>
-            <span className="rounded-full bg-slate-800 px-3 py-1">role: {profile.role}</span>
-            <span className="rounded-full bg-slate-800 px-3 py-1">token: {token ? "actif" : "absent"}</span>
+      <section className="lg:pl-72">
+        <header className="sticky top-0 z-20 border-b border-border bg-background/95 px-4 py-4 backdrop-blur md:px-8">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[hsl(var(--elka-red))]">{selected.eyebrow}</p>
+                <h2 className="section-title mt-1 text-2xl md:text-4xl">{selected.label}</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">Module {selectedIndex + 1} / {modules.length}</p>
+            </div>
+
+            <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-secondary">
+              <div className="h-full rounded-full bg-[hsl(var(--elka-red))] transition-all duration-500" style={{ width: `${progress}%` }} />
+            </div>
+
+            <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
+              {modules.map((module) => (
+                <button
+                  key={module.id}
+                  onClick={() => setActive(module.id)}
+                  className={`shrink-0 rounded-md border px-3 py-2 text-xs font-semibold ${active === module.id ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "border-border bg-card text-card-foreground"}`}
+                >
+                  {module.label}
+                </button>
+              ))}
+            </div>
           </div>
         </header>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-4 overflow-auto">
-          {view === "dashboard" && (
-            <div className="grid gap-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="rounded-2xl bg-slate-800 p-4">Confiance: {context.confidence}%</div>
-                <div className="rounded-2xl bg-slate-800 p-4">Latence: {context.latencySeconds}s</div>
-                <div className="rounded-2xl bg-slate-800 p-4">Sources: {sources.length}</div>
-              </div>
-              <div className="rounded-2xl bg-slate-800 p-6 min-h-[260px]">Carte / timeline / corrélation multi-sources</div>
-            </div>
-          )}
-
-          {view === "cameras" && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-2xl bg-slate-800 p-4 grid gap-3">
-                <h2 className="text-lg font-semibold">Caméras</h2>
-                {cameras.map((cam) => (
-                  <button key={cam.id} onClick={() => setActiveCamera(cam)} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-left">
-                    {cam.name} , {cam.zone}
-                  </button>
-                ))}
-                <div className="grid gap-2 mt-4">
-                  <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" placeholder="Nom" value={cameraForm.name} onChange={(e) => setCameraForm({ ...cameraForm, name: e.target.value })} />
-                  <select className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" value={cameraForm.protocol} onChange={(e) => setCameraForm({ ...cameraForm, protocol: e.target.value })}>
-                    <option value="hls">HLS</option><option value="webrtc">WebRTC</option><option value="rtsp">RTSP</option><option value="onvif">ONVIF</option>
-                  </select>
-                  <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" placeholder="URL" value={cameraForm.url} onChange={(e) => setCameraForm({ ...cameraForm, url: e.target.value })} />
-                  <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" placeholder="Zone" value={cameraForm.zone} onChange={(e) => setCameraForm({ ...cameraForm, zone: e.target.value })} />
-                  <button disabled={!canAdmin} className={`rounded-lg px-3 py-2 ${canAdmin ? "bg-blue-600" : "bg-slate-700 opacity-50"}`} onClick={addCamera}>Ajouter caméra</button>
-                </div>
-              </div>
-              <div className="rounded-2xl bg-slate-800 p-4 grid gap-4">
-                <h2 className="text-lg font-semibold">Player HLS</h2>
-                <div className="rounded-2xl bg-black min-h-[320px] overflow-hidden grid place-items-center">
-                  {activeCamera?.protocol === "hls" ? (
-                    <video ref={videoRef} controls autoPlay muted playsInline className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="text-slate-400">Choisis une caméra HLS</div>
-                  )}
-                </div>
-                <div className="text-sm text-slate-400">{activeCamera ? `${activeCamera.name} , ${activeCamera.zone}` : "aucune caméra sélectionnée"}</div>
-              </div>
-            </div>
-          )}
-
-          {view === "auth" && (
-            canAdmin ? <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(profile, null, 2)}</pre> : <div>Accès refusé</div>
-          )}
-
-          {view === "connectors" && (
-            canConnectors ? <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(connectors, null, 2)}</pre> : <div>Accès refusé</div>
-          )}
-
-          {view === "settings" && (
-            canAdmin ? (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-slate-800 p-4 grid gap-2">
-                  <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" placeholder="Palantir Base URL" value={settings.palantirBaseUrl} onChange={(e) => setSettings({ ...settings, palantirBaseUrl: e.target.value })} />
-                  <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" placeholder="Palantir Workspace" value={settings.palantirWorkspace} onChange={(e) => setSettings({ ...settings, palantirWorkspace: e.target.value })} />
-                  <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" placeholder="Satellite Provider" value={settings.satelliteProvider} onChange={(e) => setSettings({ ...settings, satelliteProvider: e.target.value })} />
-                  <input className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" placeholder="Flight Provider" value={settings.flightProvider} onChange={(e) => setSettings({ ...settings, flightProvider: e.target.value })} />
-                  <select className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-2" value={settings.securityMode} onChange={(e) => setSettings({ ...settings, securityMode: e.target.value })}>
-                    <option value="strict">strict</option><option value="balanced">balanced</option><option value="lab">lab</option>
-                  </select>
-                  <button className="rounded-lg bg-blue-600 px-3 py-2" onClick={saveSettings}>Sauvegarder</button>
-                  <button className="rounded-lg bg-slate-700 px-3 py-2" onClick={() => testConnector("palantir")}>Tester Palantir</button>
-                  <button className="rounded-lg bg-slate-700 px-3 py-2" onClick={() => testConnector("satellite")}>Tester Satellite</button>
-                  <button className="rounded-lg bg-slate-700 px-3 py-2" onClick={() => testConnector("flights")}>Tester Flights</button>
-                </div>
-                <pre className="rounded-2xl bg-slate-800 p-4 text-xs whitespace-pre-wrap">{JSON.stringify(testResults, null, 2)}</pre>
-              </div>
-            ) : <div>Accès refusé</div>
-          )}
-
-          {view === "registry" && (
-            canConnectors ? <div className="grid gap-4"><pre className="rounded-2xl bg-slate-800 p-4 text-xs whitespace-pre-wrap">{JSON.stringify(sources, null, 2)}</pre><pre className="rounded-2xl bg-slate-800 p-4 text-xs whitespace-pre-wrap">{JSON.stringify(cameras, null, 2)}</pre><pre className="rounded-2xl bg-slate-800 p-4 text-xs whitespace-pre-wrap">{JSON.stringify(connectors, null, 2)}</pre></div> : <div>Accès refusé</div>
-          )}
-
-          {view === "palantir" && (
-            canConnectors ? <pre className="rounded-2xl bg-slate-800 p-4 text-xs whitespace-pre-wrap">{JSON.stringify(connectors.palantirAdapter || {}, null, 2)}</pre> : <div>Accès refusé</div>
-          )}
-        </section>
-      </main>
-    </div>
+        <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-10">
+          <ActiveComponent />
+        </div>
+      </section>
+    </main>
   );
 }
