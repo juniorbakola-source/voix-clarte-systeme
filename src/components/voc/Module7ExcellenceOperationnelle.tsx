@@ -1,7 +1,104 @@
-import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
 import { comexBriefing, dashboardViews, departments, elephantPuzzlePieces, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 import elephantHero from "@/assets/elephant-hero.png";
+import sceneGlobal from "@/assets/elephant-scene1-global.jpg";
+import sceneFragmented from "@/assets/elephant-scene2-fragmented.jpg";
+import sceneDisappeared from "@/assets/elephant-scene3-disappeared.jpg";
+
+const elephantNarrative = [
+  {
+    image: sceneGlobal,
+    badge: "Scene 01",
+    title: "Global Industrial Performance",
+    caption: "Une performance forte, intacte, pleine de potentiel.",
+    tone: "from-emerald-500/30 to-transparent",
+  },
+  {
+    image: sceneFragmented,
+    badge: "Scene 02",
+    title: "Fragmented by Operational Issues",
+    caption: "Pannes, défauts, instabilité, silos : la performance se fissure.",
+    tone: "from-amber-500/35 to-transparent",
+  },
+  {
+    image: sceneDisappeared,
+    badge: "Scene 03",
+    title: "Performance Has Disappeared",
+    caption: "L'éléphant n'est plus là. Seul le produit reste — sans excellence.",
+    tone: "from-rose-600/40 to-transparent",
+  },
+] as const;
+
+function ElephantNarrativeStage() {
+  const [index, setIndex] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const scene = elephantNarrative[index];
+
+  useEffect(() => {
+    if (!playing) return;
+    const id = window.setTimeout(() => setIndex((i) => (i + 1) % elephantNarrative.length), 4200);
+    return () => window.clearTimeout(id);
+  }, [index, playing]);
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-[hsl(var(--primary-foreground))]/12 bg-[hsl(var(--elka-black))]">
+      <div className="relative aspect-[16/9] w-full">
+        {elephantNarrative.map((s, i) => (
+          <img
+            key={s.badge}
+            src={s.image}
+            alt={s.title}
+            width={1920}
+            height={1080}
+            loading={i === 0 ? "eager" : "lazy"}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${i === index ? "opacity-100" : "opacity-0"}`}
+          />
+        ))}
+        <div className={`pointer-events-none absolute inset-0 bg-gradient-to-t ${scene.tone}`} />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+
+        <div className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-white backdrop-blur-md">
+          <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--elka-red))] animate-pulse" />
+          {scene.badge} · L'éléphant ELKA
+        </div>
+
+        <button
+          onClick={() => setPlaying((p) => !p)}
+          className="absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/40 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-md transition hover:bg-black/60"
+        >
+          {playing ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+          {playing ? "Pause" : "Play"}
+        </button>
+
+        <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/65">Operational Excellence · Story</p>
+          <h4 className="mt-1.5 text-2xl font-black leading-tight md:text-3xl">{scene.title}</h4>
+          <p className="mt-2 max-w-2xl text-sm text-white/80">{scene.caption}</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 border-t border-white/10 bg-black/60 p-3">
+        {elephantNarrative.map((s, i) => (
+          <button
+            key={s.badge}
+            onClick={() => { setIndex(i); setPlaying(false); }}
+            className={`group flex flex-1 items-center gap-3 rounded-lg border p-2 text-left transition ${i === index ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))]/15" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
+          >
+            <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-md">
+              <img src={s.image} alt="" width={160} height={90} loading="lazy" className="h-full w-full object-cover" />
+              {i !== index && <div className="absolute inset-0 bg-black/45" />}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">{s.badge}</p>
+              <p className="truncate text-xs font-semibold text-white">{s.title}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 type EditableSlide = {
   act: string;
@@ -165,6 +262,11 @@ export default function Module7ExcellenceOperationnelle() {
               </button>
             </div>
 
+            {current === 0 && (
+              <div className="mb-5">
+                <ElephantNarrativeStage />
+              </div>
+            )}
             <DynamicSlideVisual slide={slide} progress={progress} />
 
             <div className="mt-5 grid gap-3 md:grid-cols-3">
