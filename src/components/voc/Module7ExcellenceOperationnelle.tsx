@@ -84,6 +84,7 @@ export default function Module7ExcellenceOperationnelle() {
   const [activeMode, setActiveMode] = useState<string>(gamificationModes[0].id);
   const [actionsTaken, setActionsTaken] = useState<number[]>([]);
   const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
+  const [takenPieces, setTakenPieces] = useState<number[]>([]);
   const slide = slides[current];
   const progress = ((current + 1) / slides.length) * 100;
   const score = useMemo(() => checked.reduce((sum, index) => sum + scoreRules[index].points, 0), [checked]);
