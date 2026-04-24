@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, PlayCircle, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
-import { comexBriefing, dashboardViews, departments, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { comexBriefing, dashboardViews, departments, elephantPuzzlePieces, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
+import elephantHero from "@/assets/elephant-hero.png";
 
 type EditableSlide = {
   act: string;
@@ -83,6 +84,7 @@ export default function Module7ExcellenceOperationnelle() {
   const [activeMode, setActiveMode] = useState<string>(gamificationModes[0].id);
   const [actionsTaken, setActionsTaken] = useState<number[]>([]);
   const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
+  const [takenPieces, setTakenPieces] = useState<number[]>([]);
   const slide = slides[current];
   const progress = ((current + 1) / slides.length) * 100;
   const score = useMemo(() => checked.reduce((sum, index) => sum + scoreRules[index].points, 0), [checked]);
@@ -213,6 +215,131 @@ export default function Module7ExcellenceOperationnelle() {
               <button onClick={() => setCurrent((value) => Math.min(slides.length - 1, value + 1))} className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))] transition hover:opacity-90" aria-label="Slide suivante">
                 <ArrowRight className="h-4 w-4" />
               </button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      {/* Puzzle Éléphant — Industrie amortisseurs */}
+      <section className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-gradient-to-br from-[hsl(var(--elka-black))] to-[hsl(var(--elka-darkgray))] text-[hsl(var(--primary-foreground))] shadow-2xl">
+        <div className="grid lg:grid-cols-[1fr_0.85fr]">
+          {/* Visualisation éléphant + puzzle */}
+          <div className="relative p-6 md:p-8">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--elka-red))]">L'éléphant industriel</p>
+                <h3 className="mt-1 text-2xl font-bold md:text-3xl">Une bouchée à la fois</h3>
+                <p className="mt-1 text-xs text-[hsl(var(--primary-foreground))]/60">Cliquez chaque pièce : le département prend sa part, l'éléphant disparaît.</p>
+              </div>
+              <button
+                onClick={() => setTakenPieces([])}
+                className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--primary-foreground))]/15 bg-[hsl(var(--primary-foreground))]/8 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] transition hover:bg-[hsl(var(--primary-foreground))]/14"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reset
+              </button>
+            </div>
+
+            {/* Scène mobile/desktop : éléphant + pièces */}
+            <div className="relative mx-auto aspect-[4/3] w-full max-w-md overflow-hidden rounded-lg bg-[hsl(var(--primary-foreground))]/5 ring-1 ring-[hsl(var(--primary-foreground))]/10">
+              {/* Éléphant qui s'efface progressivement */}
+              <img
+                src={elephantHero}
+                alt="Éléphant — métaphore du grand problème industriel"
+                width={1024}
+                height={768}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-contain p-6 transition-all duration-1000"
+                style={{
+                  opacity: Math.max(0, 1 - (takenPieces.length / elephantPuzzlePieces.length) * 1.05),
+                  filter: `grayscale(${takenPieces.length * 12}%) blur(${takenPieces.length * 0.4}px)`,
+                  transform: `scale(${1 - takenPieces.length * 0.02})`,
+                }}
+              />
+
+              {/* Pièces de puzzle en surimpression */}
+              {elephantPuzzlePieces.map((piece) => {
+                const isTaken = takenPieces.includes(piece.id);
+                return (
+                  <button
+                    key={piece.id}
+                    onClick={() => setTakenPieces((prev) => prev.includes(piece.id) ? prev.filter((id) => id !== piece.id) : [...prev, piece.id])}
+                    aria-label={`Prendre la part : ${piece.problem}`}
+                    className={`group absolute flex flex-col items-center justify-center rounded-md border-2 p-1.5 text-center transition-all duration-500 ${
+                      isTaken
+                        ? "scale-90 border-[hsl(var(--elka-red))]/0 bg-transparent opacity-0 pointer-events-none"
+                        : "border-[hsl(var(--elka-red))]/70 bg-[hsl(var(--elka-black))]/85 backdrop-blur-sm hover:scale-105 hover:border-[hsl(var(--elka-red))] hover:bg-[hsl(var(--elka-red))]/30 hover:shadow-lg"
+                    }`}
+                    style={{
+                      left: `${piece.x}%`,
+                      top: `${piece.y}%`,
+                      width: `${piece.w}%`,
+                      height: `${piece.h}%`,
+                    }}
+                  >
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-[hsl(var(--elka-red))] md:text-[9px]">{piece.owner}</span>
+                    <span className="mt-0.5 line-clamp-2 text-[9px] font-semibold leading-tight text-[hsl(var(--primary-foreground))] md:text-[10px]">{piece.problem}</span>
+                  </button>
+                );
+              })}
+
+              {/* Message final quand tout est pris */}
+              {takenPieces.length === elephantPuzzlePieces.length && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[hsl(var(--elka-black))]/95 p-6 text-center animate-reveal">
+                  <Trophy className="mb-3 h-10 w-10 text-[hsl(var(--elka-red))]" />
+                  <p className="text-xl font-bold md:text-2xl">L'éléphant a disparu.</p>
+                  <p className="mt-2 max-w-xs text-sm text-[hsl(var(--primary-foreground))]/70">Personne ne l'a mangé seul. Chacun a pris sa part.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Barre de progression */}
+            <div className="mt-5">
+              <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-[hsl(var(--primary-foreground))]/60">
+                <span>Bouchées prises</span>
+                <span className="text-[hsl(var(--elka-red))]">{takenPieces.length} / {elephantPuzzlePieces.length}</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-[hsl(var(--primary-foreground))]/10">
+                <div
+                  className="h-full rounded-full bg-[hsl(var(--elka-red))] transition-all duration-700"
+                  style={{ width: `${(takenPieces.length / elephantPuzzlePieces.length) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Liste détaillée des pièces */}
+          <aside className="border-t border-[hsl(var(--primary-foreground))]/10 bg-[hsl(var(--elka-black))]/60 p-6 lg:border-l lg:border-t-0">
+            <div className="mb-4 flex items-center gap-2">
+              <PuzzleIcon className="h-5 w-5 text-[hsl(var(--elka-red))]" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--primary-foreground))]/60">8 pièces · 8 départements</p>
+            </div>
+            <div className="max-h-[480px] space-y-2 overflow-y-auto pr-1">
+              {elephantPuzzlePieces.map((piece) => {
+                const isTaken = takenPieces.includes(piece.id);
+                return (
+                  <button
+                    key={piece.id}
+                    onClick={() => setTakenPieces((prev) => prev.includes(piece.id) ? prev.filter((id) => id !== piece.id) : [...prev, piece.id])}
+                    className={`flex w-full items-start gap-3 rounded-md border p-3 text-left transition ${
+                      isTaken
+                        ? "border-[hsl(var(--elka-red))]/40 bg-[hsl(var(--elka-red))]/8 opacity-60"
+                        : "border-[hsl(var(--primary-foreground))]/12 bg-[hsl(var(--primary-foreground))]/4 hover:border-[hsl(var(--elka-red))]/50 hover:bg-[hsl(var(--primary-foreground))]/8"
+                    }`}
+                  >
+                    {isTaken
+                      ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[hsl(var(--elka-red))]" />
+                      : <Target className="mt-0.5 h-4 w-4 shrink-0 text-[hsl(var(--primary-foreground))]/40" />}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`text-sm font-semibold ${isTaken ? "line-through text-[hsl(var(--primary-foreground))]/60" : "text-[hsl(var(--primary-foreground))]"}`}>{piece.problem}</p>
+                        <span className="rounded bg-[hsl(var(--elka-red))]/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[hsl(var(--elka-red))]">{piece.owner}</span>
+                      </div>
+                      <p className="mt-1 text-xs text-[hsl(var(--primary-foreground))]/55">🍽️ {piece.bite}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </aside>
         </div>
