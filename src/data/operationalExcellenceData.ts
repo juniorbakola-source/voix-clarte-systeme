@@ -1,4 +1,4 @@
-import { Gauge, Target, Trophy, Users } from "lucide-react";
+import { Activity, Boxes, Gauge, Layers, LineChart, Puzzle, QrCode, Rocket, Settings, ShieldCheck, Sparkles, Target, Timer, Trophy, Users, Wrench } from "lucide-react";
 
 export const oeSlides = [
   {
