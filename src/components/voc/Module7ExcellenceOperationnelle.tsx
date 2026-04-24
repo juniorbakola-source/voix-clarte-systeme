@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, PlayCircle, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
-import { departments, gameLevels, oePillars, oeSlides, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, PlayCircle, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { comexBriefing, dashboardViews, departments, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 
 type EditableSlide = {
   act: string;
@@ -76,10 +76,19 @@ export default function Module7ExcellenceOperationnelle() {
   const [checked, setChecked] = useState<number[]>([0, 1]);
   const [editMode, setEditMode] = useState(false);
   const [audiencePulse, setAudiencePulse] = useState(68);
+  const [activeView, setActiveView] = useState<string>(dashboardViews[0].id);
+  const [activePhase, setActivePhase] = useState(0);
+  const [activeTool, setActiveTool] = useState<number | null>(null);
+  const [comexAnswered, setComexAnswered] = useState<number[]>([]);
+  const [activeMode, setActiveMode] = useState<string>(gamificationModes[0].id);
+  const [actionsTaken, setActionsTaken] = useState<number[]>([]);
   const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
   const slide = slides[current];
   const progress = ((current + 1) / slides.length) * 100;
   const score = useMemo(() => checked.reduce((sum, index) => sum + scoreRules[index].points, 0), [checked]);
+  const dashboard = dashboardViews.find((view) => view.id === activeView) ?? dashboardViews[0];
+  const phase = roadmapPhases[activePhase];
+  const mode = gamificationModes.find((item) => item.id === activeMode) ?? gamificationModes[0];
 
   const toggleRule = (index: number) => {
     setChecked((prev) => prev.includes(index) ? prev.filter((item) => item !== index) : [...prev, index]);
@@ -274,6 +283,189 @@ export default function Module7ExcellenceOperationnelle() {
         </div>
       </section>
 
+      {/* Architecture OE — 8 outils interactifs */}
+      <section className="consulting-card">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Architecture OE</p>
+            <h3 className="section-title text-2xl">8 outils — Une chaîne de valeur</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Cliquez sur un outil pour révéler son pilote et ses connexions inter-départements.</p>
+          </div>
+          <Settings className="h-8 w-8 text-[hsl(var(--elka-red))]" />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {oeTools.map((tool, index) => {
+            const isActive = activeTool === index;
+            return (
+              <button
+                key={tool.code}
+                onClick={() => setActiveTool(isActive ? null : index)}
+                className={`rounded-md border p-4 text-left transition ${isActive ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))]/8 shadow-md" : "border-[hsl(var(--border))] bg-card hover:border-[hsl(var(--elka-red))]/40"}`}
+              >
+                <tool.icon className={`mb-2 h-5 w-5 ${isActive ? "text-[hsl(var(--elka-red))]" : "text-muted-foreground"}`} />
+                <p className="text-sm font-bold text-foreground">{tool.code}</p>
+                <p className="text-xs text-muted-foreground">{tool.name}</p>
+                {isActive && (
+                  <div className="mt-3 space-y-1 border-t border-[hsl(var(--border))] pt-3 animate-reveal">
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-[hsl(var(--elka-red))]">Pilote</p>
+                    <p className="text-xs font-semibold">{tool.owner}</p>
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Connexions</p>
+                    <p className="text-xs">{tool.link}</p>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Dashboard SaaS — 4 vues */}
+      <section className="consulting-card">
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Dashboard SaaS live</p>
+            <h3 className="section-title text-2xl">4 vues. 1 plateforme.</h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {dashboardViews.map((view) => (
+              <button
+                key={view.id}
+                onClick={() => setActiveView(view.id)}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold transition ${activeView === view.id ? "bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "border border-[hsl(var(--border))] bg-card hover:bg-secondary"}`}
+              >
+                <view.icon className="h-3.5 w-3.5" />
+                {view.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--elka-black))] p-6 text-[hsl(var(--primary-foreground))]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--primary-foreground))]/55">{dashboard.kpi}</p>
+            <p className="score-display mt-3 text-7xl text-[hsl(var(--elka-red))]">{dashboard.value}</p>
+            <p className="mt-2 text-sm text-[hsl(var(--primary-foreground))]/70">{dashboard.delta}</p>
+            <div className="mt-6 h-2 overflow-hidden rounded-full bg-[hsl(var(--primary-foreground))]/12">
+              <div className="h-full rounded-full bg-[hsl(var(--elka-red))] transition-all duration-700" style={{ width: `${Math.min(100, parseInt(dashboard.value) || 75)}%` }} />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {dashboard.metrics.map((metric) => (
+              <div key={metric.label} className="rounded-md border border-[hsl(var(--border))] bg-secondary/40 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{metric.label}</p>
+                <p className="score-display mt-2 text-3xl text-foreground">{metric.value}</p>
+                <p className="mt-1 text-xs font-semibold text-[hsl(var(--elka-red))]">{metric.trend}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Roadmap 4 phases */}
+      <section className="consulting-card">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Roadmap 0 → 12 mois</p>
+            <h3 className="section-title text-2xl">De l'activation à la maturité</h3>
+          </div>
+          <MapPin className="h-8 w-8 text-[hsl(var(--elka-red))]" />
+        </div>
+        <div className="mb-5 grid gap-2 md:grid-cols-4">
+          {roadmapPhases.map((item, index) => (
+            <button
+              key={item.phase}
+              onClick={() => setActivePhase(index)}
+              className={`rounded-md border p-3 text-left transition ${activePhase === index ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))]/8" : "border-[hsl(var(--border))] bg-card hover:bg-secondary"}`}
+            >
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">{item.phase}</p>
+              <p className="mt-1 text-sm font-bold text-foreground">{item.title}</p>
+              <p className="text-xs text-muted-foreground">{item.period}</p>
+            </button>
+          ))}
+        </div>
+        <div className="rounded-md border border-[hsl(var(--border))] bg-secondary/40 p-5 animate-reveal">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-lg font-bold text-foreground">{phase.title} — {phase.focus}</p>
+            <span className="rounded bg-[hsl(var(--elka-red))] px-3 py-1 text-xs font-bold text-[hsl(var(--accent-foreground))]">{phase.kpi}</span>
+          </div>
+          <div className="grid gap-2 md:grid-cols-3">
+            {phase.actions.map((action) => (
+              <div key={action} className="flex items-start gap-2 rounded border border-[hsl(var(--border))] bg-card p-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[hsl(var(--elka-red))]" />
+                <p className="text-sm text-foreground">{action}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Briefing COMEX */}
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="consulting-card">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Briefing COMEX</p>
+          <h3 className="section-title mt-1 text-2xl">Réponses aux objections</h3>
+          <div className="mt-5 space-y-2">
+            {comexBriefing.objections.map((item, index) => {
+              const open = comexAnswered.includes(index);
+              return (
+                <button
+                  key={item.q}
+                  onClick={() => setComexAnswered((prev) => prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index])}
+                  className="w-full rounded-md border border-[hsl(var(--border))] bg-card p-4 text-left transition hover:border-[hsl(var(--elka-red))]/40"
+                >
+                  <p className="flex items-center justify-between text-sm font-semibold text-foreground">
+                    <span>« {item.q} »</span>
+                    <span className="text-[hsl(var(--elka-red))]">{open ? "−" : "+"}</span>
+                  </p>
+                  {open && <p className="mt-2 text-sm text-muted-foreground animate-reveal">→ {item.a}</p>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="consulting-card bg-[hsl(var(--elka-black))] text-[hsl(var(--primary-foreground))]">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Business case 12 mois</p>
+          <h3 className="section-title mt-1 text-2xl text-[hsl(var(--primary-foreground))]">ROI consolidé</h3>
+          <div className="mt-5 space-y-3">
+            {comexBriefing.roi.map((item) => (
+              <div key={item.label} className="flex items-center justify-between border-b border-[hsl(var(--primary-foreground))]/10 pb-3 last:border-0">
+                <p className="text-sm text-[hsl(var(--primary-foreground))]/70">{item.label}</p>
+                <p className="score-display text-2xl text-[hsl(var(--elka-red))]">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Gamification interactive — QR / Kahoot / Puzzle / Scoring */}
+      <section className="consulting-card">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Système gamifié complet</p>
+            <h3 className="section-title text-2xl">Réveiller l'auditoire en 4 modes</h3>
+          </div>
+        </div>
+        <div className="grid gap-3 md:grid-cols-4">
+          {gamificationModes.map((item) => {
+            const isActive = activeMode === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveMode(item.id)}
+                className={`rounded-md border p-4 text-left transition ${isActive ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))]/8" : "border-[hsl(var(--border))] bg-card hover:border-[hsl(var(--elka-red))]/40"}`}
+              >
+                <item.icon className={`mb-2 h-6 w-6 ${isActive ? "text-[hsl(var(--elka-red))]" : "text-muted-foreground"}`} />
+                <p className="text-sm font-bold text-foreground">{item.title}</p>
+                <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[hsl(var(--elka-red))]">{item.metric}</p>
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-5 rounded-md border border-[hsl(var(--border))] bg-secondary/40 p-5 animate-reveal">
+          <p className="text-lg text-foreground">{mode.desc}</p>
+        </div>
+      </section>
+
+      {/* Call-to-action final enrichi */}
       <section className="consulting-card border-l-4 border-l-[hsl(var(--elka-red))]">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -284,6 +476,24 @@ export default function Module7ExcellenceOperationnelle() {
             <Trophy className="h-5 w-5 text-[hsl(var(--elka-red))]" />
             <span className="text-sm font-semibold">Engagement visible sous 24 h</span>
           </div>
+        </div>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          {immediateActions.map((action, index) => {
+            const done = actionsTaken.includes(index);
+            return (
+              <button
+                key={action.label}
+                onClick={() => setActionsTaken((prev) => prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index])}
+                className={`flex items-start gap-3 rounded-md border p-4 text-left transition ${done ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))]/8" : "border-[hsl(var(--border))] bg-card hover:bg-secondary"}`}
+              >
+                {done ? <CheckCircle2 className="mt-0.5 h-5 w-5 text-[hsl(var(--elka-red))]" /> : <action.icon className="mt-0.5 h-5 w-5 text-muted-foreground" />}
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{action.label}</p>
+                  <p className="text-xs text-[hsl(var(--elka-red))]">{action.deadline}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
     </div>
