@@ -256,6 +256,18 @@ export const gamificationModes = [
   },
 ] as const;
 
+// Puzzle Éléphant — Problèmes industrie amortisseurs (8 pièces)
+export const elephantPuzzlePieces = [
+  { id: 1, problem: "Défauts amortisseurs", owner: "Qualité", bite: "Bloquer le défaut critique CTQ", x: 18, y: 20, w: 22, h: 28 },
+  { id: 2, problem: "Arrêts ligne récurrents", owner: "Production", bite: "Isoler la cause racine #1", x: 40, y: 15, w: 24, h: 26 },
+  { id: 3, problem: "Variabilité fournisseurs", owner: "Achats", bite: "Sécuriser 1 fournisseur instable", x: 64, y: 22, w: 22, h: 26 },
+  { id: 4, problem: "FMEA non clôturée", owner: "Ingénierie", bite: "Fermer 1 risque prioritaire", x: 16, y: 48, w: 24, h: 26 },
+  { id: 5, problem: "Forecast instable", owner: "Ventes", bite: "Fiabiliser 1 donnée client clé", x: 40, y: 41, w: 24, h: 28 },
+  { id: 6, problem: "Coûts de non-qualité", owner: "Finance", bite: "Rendre visible 1 COPQ caché", x: 64, y: 48, w: 22, h: 26 },
+  { id: 7, problem: "Maintenance réactive", owner: "Maintenance", bite: "Lancer 1 plan TPM pilote", x: 28, y: 69, w: 22, h: 22 },
+  { id: 8, problem: "Silos inter-équipes", owner: "COMEX", bite: "Rituel hebdo cross-fonctionnel", x: 52, y: 69, w: 24, h: 22 },
+] as const;
+
 // Actions immédiates — Call to action final
 export const immediateActions = [
   { icon: Target, label: "Identifier votre éléphant", deadline: "Aujourd'hui" },
