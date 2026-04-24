@@ -76,10 +76,19 @@ export default function Module7ExcellenceOperationnelle() {
   const [checked, setChecked] = useState<number[]>([0, 1]);
   const [editMode, setEditMode] = useState(false);
   const [audiencePulse, setAudiencePulse] = useState(68);
+  const [activeView, setActiveView] = useState<string>(dashboardViews[0].id);
+  const [activePhase, setActivePhase] = useState(0);
+  const [activeTool, setActiveTool] = useState<number | null>(null);
+  const [comexAnswered, setComexAnswered] = useState<number[]>([]);
+  const [activeMode, setActiveMode] = useState<string>(gamificationModes[0].id);
+  const [actionsTaken, setActionsTaken] = useState<number[]>([]);
   const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
   const slide = slides[current];
   const progress = ((current + 1) / slides.length) * 100;
   const score = useMemo(() => checked.reduce((sum, index) => sum + scoreRules[index].points, 0), [checked]);
+  const dashboard = dashboardViews.find((view) => view.id === activeView) ?? dashboardViews[0];
+  const phase = roadmapPhases[activePhase];
+  const mode = gamificationModes.find((item) => item.id === activeMode) ?? gamificationModes[0];
 
   const toggleRule = (index: number) => {
     setChecked((prev) => prev.includes(index) ? prev.filter((item) => item !== index) : [...prev, index]);
