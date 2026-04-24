@@ -99,3 +99,166 @@ export const departments = [
 export const scoreRules = gameLevels.map((level) => ({ label: level.title, points: level.points }));
 
 export const totalTeamScore = (team: (typeof scoreboardTeams)[number]) => team.clarity + team.action + team.impact;
+
+// 8 outils OE (Architecture)
+export const oeTools = [
+  { code: "OEE", name: "Overall Equipment Effectiveness", owner: "Production", icon: Gauge, link: "Qualité · Maintenance", color: "red" },
+  { code: "Six Sigma", name: "Réduction variabilité défauts", owner: "Qualité", icon: ShieldCheck, link: "Ingénierie · Production", color: "red" },
+  { code: "SPC", name: "Statistical Process Control", owner: "Qualité", icon: LineChart, link: "Production", color: "silver" },
+  { code: "FMEA", name: "Analyse modes de défaillance", owner: "Ingénierie", icon: Target, link: "Qualité · Achats", color: "silver" },
+  { code: "TPM", name: "Total Productive Maintenance", owner: "Maintenance", icon: Wrench, link: "Production", color: "red" },
+  { code: "SMED", name: "Changement rapide d'outil", owner: "Production", icon: Timer, link: "Ingénierie", color: "silver" },
+  { code: "S&OP", name: "Sales & Operations Planning", owner: "Ventes", icon: Activity, link: "Achats · Finance", color: "silver" },
+  { code: "VSM", name: "Value Stream Mapping", owner: "Excellence Op.", icon: Layers, link: "Tous départements", color: "red" },
+] as const;
+
+// Dashboard SaaS — 4 vues
+export const dashboardViews = [
+  {
+    id: "globale",
+    label: "Vue Globale",
+    icon: Sparkles,
+    kpi: "OE Score",
+    value: "72",
+    delta: "+8 pts",
+    metrics: [
+      { label: "OEE moyen", value: "78%", trend: "+3" },
+      { label: "PPM défauts", value: "320", trend: "-45" },
+      { label: "Bouchées/jour", value: "47", trend: "+12" },
+    ],
+  },
+  {
+    id: "strategique",
+    label: "Vue Stratégique (COMEX)",
+    icon: Trophy,
+    kpi: "ROI 12 mois",
+    value: "3.4x",
+    delta: "Plan tenu",
+    metrics: [
+      { label: "EBITDA impact", value: "+2.1 M€", trend: "↑" },
+      { label: "COPQ", value: "-38%", trend: "↓" },
+      { label: "OTD client", value: "94%", trend: "+6" },
+    ],
+  },
+  {
+    id: "operationnelle",
+    label: "Vue Opérationnelle",
+    icon: Settings,
+    kpi: "Actions live",
+    value: "126",
+    delta: "82 closes",
+    metrics: [
+      { label: "QRQC ouverts", value: "14", trend: "-3" },
+      { label: "FMEA closes", value: "61%", trend: "+9" },
+      { label: "MTBF lignes", value: "42h", trend: "+5" },
+    ],
+  },
+  {
+    id: "gamification",
+    label: "Vue Gamification",
+    icon: Trophy,
+    kpi: "Engagement",
+    value: "88%",
+    delta: "4 équipes",
+    metrics: [
+      { label: "Bouchées/équipe", value: "12", trend: "+4" },
+      { label: "Niveau moyen", value: "3.2", trend: "+0.5" },
+      { label: "Streak max", value: "21j", trend: "🔥" },
+    ],
+  },
+] as const;
+
+// Roadmap 4 phases (0-12 mois)
+export const roadmapPhases = [
+  {
+    phase: "Phase 1",
+    period: "Mois 0-2",
+    title: "Activation",
+    focus: "Quick wins + alignement COMEX",
+    actions: ["Diagnostic VOC", "Sélection éléphants prioritaires", "Lancement rituels QRQC"],
+    kpi: "3 quick wins visibles",
+    color: "red",
+  },
+  {
+    phase: "Phase 2",
+    period: "Mois 3-5",
+    title: "Structuration",
+    focus: "Déploiement outils OE",
+    actions: ["FMEA critiques", "SPC lignes pilotes", "Scorecard fournisseurs"],
+    kpi: "OEE +5 pts",
+    color: "silver",
+  },
+  {
+    phase: "Phase 3",
+    period: "Mois 6-9",
+    title: "Accélération",
+    focus: "Standardisation + gamification",
+    actions: ["Dashboard live", "Battles inter-équipes", "S&OP mensuel"],
+    kpi: "PPM -30%",
+    color: "red",
+  },
+  {
+    phase: "Phase 4",
+    period: "Mois 10-12",
+    title: "Maturité",
+    focus: "Culture + ROI consolidé",
+    actions: ["Audit OE world class", "Certification équipes", "Plan année N+1"],
+    kpi: "ROI 3x atteint",
+    color: "silver",
+  },
+] as const;
+
+// Version COMEX — objections / réponses
+export const comexBriefing = {
+  roi: [
+    { label: "Investissement total", value: "620 K€" },
+    { label: "Gains nets 12 mois", value: "2.1 M€" },
+    { label: "Payback", value: "4 mois" },
+    { label: "Multiple ROI", value: "3.4x" },
+  ],
+  objections: [
+    { q: "Encore une initiative ?", a: "Non — un système de répétition. Pas un programme." },
+    { q: "Combien de temps avant impact ?", a: "Premiers gains visibles en 8 semaines via quick wins." },
+    { q: "Charge supplémentaire pour le terrain ?", a: "15 min/jour de rituel. Remplace les réunions inutiles." },
+    { q: "Et si ça ne marche pas ?", a: "Pilotage live + sortie en 90 jours si KPI non atteints." },
+  ],
+} as const;
+
+// Gamification — QR / Kahoot / Puzzle
+export const gamificationModes = [
+  {
+    id: "qr",
+    title: "QR Code Engagement",
+    icon: QrCode,
+    desc: "Chaque participant scanne, choisit son éléphant, valide ses bouchées en live.",
+    metric: "Activation < 30 sec",
+  },
+  {
+    id: "kahoot",
+    title: "Kahoot — 3 niveaux",
+    icon: Rocket,
+    desc: "Quiz progressif : Diagnostic → Outils OE → Application terrain.",
+    metric: "15 questions · 20 min",
+  },
+  {
+    id: "puzzle",
+    title: "Puzzle par département",
+    icon: Puzzle,
+    desc: "Chaque équipe assemble son éléphant : pièces = bouchées concrètes.",
+    metric: "6 puzzles · 6 départements",
+  },
+  {
+    id: "scoring",
+    title: "Scoring 100 points",
+    icon: Trophy,
+    desc: "Clarté 25 · Structuration 25 · Faisabilité 25 · Engagement 25.",
+    metric: "Leaderboard live",
+  },
+] as const;
+
+// Actions immédiates — Call to action final
+export const immediateActions = [
+  { icon: Target, label: "Identifier votre éléphant", deadline: "Aujourd'hui" },
+  { icon: Boxes, label: "Définir 3 bouchées", deadline: "Cette semaine" },
+  { icon: Users, label: "Embarquer votre équipe", deadline: "48 heures" },
+] as const;
