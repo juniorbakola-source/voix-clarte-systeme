@@ -262,6 +262,11 @@ export default function Module7ExcellenceOperationnelle() {
               </button>
             </div>
 
+            {current === 0 && (
+              <div className="mb-5">
+                <ElephantNarrativeStage />
+              </div>
+            )}
             <DynamicSlideVisual slide={slide} progress={progress} />
 
             <div className="mt-5 grid gap-3 md:grid-cols-3">
