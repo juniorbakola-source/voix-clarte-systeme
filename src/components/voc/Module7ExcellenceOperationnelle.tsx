@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, PlayCircle, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
-import { comexBriefing, dashboardViews, departments, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { comexBriefing, dashboardViews, departments, elephantPuzzlePieces, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
+import elephantHero from "@/assets/elephant-hero.png";
 
 type EditableSlide = {
   act: string;
