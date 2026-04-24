@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, PlayCircle, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, PlayCircle, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
 import { comexBriefing, dashboardViews, departments, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 
 type EditableSlide = {
