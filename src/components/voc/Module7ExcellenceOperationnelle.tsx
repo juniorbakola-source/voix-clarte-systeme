@@ -214,7 +214,18 @@ export default function Module7ExcellenceOperationnelle() {
   }, [fullscreen]);
 
   return (
-    <div className="space-y-8">
+    <div className={fullscreen ? "fixed inset-0 z-[100] overflow-y-auto bg-background p-4 md:p-8 space-y-8" : "space-y-8"}>
+      <div className="flex items-center justify-end">
+        <button
+          onClick={() => setFullscreen((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
+          aria-label={fullscreen ? "Quitter le plein écran" : "Afficher en plein écran"}
+        >
+          {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+          {fullscreen ? "Quitter plein écran" : "Plein écran"}
+        </button>
+      </div>
+
       <section className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--elka-black))] text-[hsl(var(--primary-foreground))] shadow-2xl">
         <div className="grid min-h-[620px] lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative flex flex-col justify-between p-6 md:p-10">
