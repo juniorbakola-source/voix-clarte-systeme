@@ -375,30 +375,43 @@ const DEFAULT_SPEED = 8;
 const LOOP_AUTOPLAY = true;
 
 export default function App() {
+  const [slides, setSlides] = useState(slidesData);
   const [index, setIndex] = useState(0);
-  const [transitionKey, setTransitionKey] = useState("morph");
+  // Two independent transition styles
+  const [manualTransitionKey, setManualTransitionKey] = useState("slide");
+  const [autoTransitionKey, setAutoTransitionKey] = useState("morph");
   const [direction, setDirection] = useState(1);
   const [autoplay, setAutoplay] = useState(false);
-  const [speed, setSpeed] = useState(DEFAULT_SPEED); // seconds per slide
-  const [paused, setPaused] = useState(false);       // temporary pause (hover / manual nav)
-  const [tick, setTick] = useState(0);                // forces progress restart on manual nav
+  const [speed, setSpeed] = useState(DEFAULT_SPEED);
+  const [paused, setPaused] = useState(false);
+  const [tick, setTick] = useState(0);
+  const [editing, setEditing] = useState(false);
+  // Track whether the LAST nav was driven by the autoplay timer
+  const [lastNavAuto, setLastNavAuto] = useState(false);
 
-  const next = useCallback(() => {
+  // Patch current slide (used by Editable inside slides)
+  const patchSlide = useCallback((partial) => {
+    setSlides((arr) => arr.map((s, i) => (i === index ? { ...s, ...partial } : s)));
+  }, [index]);
+
+  const next = useCallback((fromAuto = false) => {
+    setLastNavAuto(fromAuto);
     setDirection(1);
     setIndex((i) => {
-      if (i >= slidesData.length - 1) return LOOP_AUTOPLAY && autoplay ? 0 : i;
+      if (i >= slides.length - 1) return LOOP_AUTOPLAY && autoplay ? 0 : i;
       return i + 1;
     });
-  }, [autoplay]);
+  }, [autoplay, slides.length]);
   const prev = useCallback(() => {
+    setLastNavAuto(false);
     setDirection(-1);
     setIndex((i) => Math.max(i - 1, 0));
   }, []);
-
   const goTo = useCallback((i) => {
+    setLastNavAuto(false);
     setDirection(i > index ? 1 : -1);
-    setIndex(Math.max(0, Math.min(slidesData.length - 1, i)));
-  }, [index]);
+    setIndex(Math.max(0, Math.min(slides.length - 1, i)));
+  }, [index, slides.length]);
 
   const toggleAutoplay = useCallback(() => setAutoplay((a) => !a), []);
   const cycleSpeed = useCallback(() => {
@@ -407,67 +420,67 @@ export default function App() {
       return SPEED_PRESETS[(i + 1) % SPEED_PRESETS.length];
     });
   }, []);
+  const cycleManualTransition = useCallback(() => {
+    setManualTransitionKey((k) => TRANSITION_KEYS[(TRANSITION_KEYS.indexOf(k) + 1) % TRANSITION_KEYS.length]);
+  }, []);
+  const cycleAutoTransition = useCallback(() => {
+    setAutoTransitionKey((k) => TRANSITION_KEYS[(TRANSITION_KEYS.indexOf(k) + 1) % TRANSITION_KEYS.length]);
+  }, []);
 
-  // Autoplay timer — restarts on slide change, speed change, pause toggle
+  // Autoplay timer
   useEffect(() => {
-    if (!autoplay || paused) return;
-    const ms = speed * 1000;
-    const id = setTimeout(() => next(), ms);
+    if (!autoplay || paused || editing) return;
+    const id = setTimeout(() => next(true), speed * 1000);
     return () => clearTimeout(id);
-  }, [autoplay, paused, speed, index, tick, next]);
+  }, [autoplay, paused, editing, speed, index, tick, next]);
 
-  // Manual nav resets the autoplay countdown
-  const manualNext = useCallback(() => { setTick((t) => t + 1); next(); }, [next]);
+  const manualNext = useCallback(() => { setTick((t) => t + 1); next(false); }, [next]);
   const manualPrev = useCallback(() => { setTick((t) => t + 1); prev(); }, [prev]);
 
   useEffect(() => {
     const onKey = (e) => {
+      // Don't hijack keys while user is typing inside an editable field
+      if (editing && e.target?.isContentEditable) return;
       if (e.key === "ArrowRight") { e.preventDefault(); manualNext(); }
       else if (e.key === " ") {
-        // Space = play/pause when autoplay is on, otherwise advance
         e.preventDefault();
-        if (autoplay) setPaused((p) => !p);
-        else manualNext();
+        if (autoplay) setPaused((p) => !p); else manualNext();
       }
       else if (e.key === "ArrowLeft" || e.key === "Backspace") { e.preventDefault(); manualPrev(); }
       else if (e.key === "Home") goTo(0);
-      else if (e.key === "End") goTo(slidesData.length - 1);
+      else if (e.key === "End") goTo(slides.length - 1);
       else if (e.key.toLowerCase() === "f") {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
         else document.exitFullscreen?.();
-      } else if (e.key.toLowerCase() === "t") {
-        setTransitionKey((k) => {
-          const i = TRANSITION_KEYS.indexOf(k);
-          return TRANSITION_KEYS[(i + 1) % TRANSITION_KEYS.length];
-        });
-      } else if (e.key.toLowerCase() === "a") {
-        toggleAutoplay();
-      } else if (e.key.toLowerCase() === "s") {
-        cycleSpeed();
-      } else if (e.key.toLowerCase() === "p") {
-        setPaused((p) => !p);
-      }
+      } else if (e.key.toLowerCase() === "t") { cycleManualTransition(); }
+      else if (e.key.toLowerCase() === "y") { cycleAutoTransition(); }
+      else if (e.key.toLowerCase() === "a") { toggleAutoplay(); }
+      else if (e.key.toLowerCase() === "s") { cycleSpeed(); }
+      else if (e.key.toLowerCase() === "p") { setPaused((p) => !p); }
+      else if (e.key.toLowerCase() === "e") { setEditing((v) => !v); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [manualNext, manualPrev, goTo, autoplay, toggleAutoplay, cycleSpeed]);
+  }, [editing, manualNext, manualPrev, goTo, autoplay, toggleAutoplay, cycleSpeed, cycleManualTransition, cycleAutoTransition, slides.length]);
 
-  const slide = slidesData[index];
+  const slide = slides[index];
+  // Pick the active transition based on what triggered the nav
+  const activeTransitionKey = lastNavAuto ? autoTransitionKey : manualTransitionKey;
   const variant = useMemo(() => {
-    const base = TRANSITIONS[transitionKey];
-    if (transitionKey !== "slide") return base;
+    const base = TRANSITIONS[activeTransitionKey];
+    if (activeTransitionKey !== "slide") return base;
     return {
       ...base,
       initial: { opacity: 0, x: 80 * direction },
       exit: { opacity: 0, x: -80 * direction },
     };
-  }, [transitionKey, direction]);
+  }, [activeTransitionKey, direction]);
 
   return (
     <div
       style={{ background: "#000", overflow: "hidden", position: "relative" }}
-      onMouseEnter={() => autoplay && setPaused(true)}
-      onMouseLeave={() => autoplay && setPaused(false)}
+      onMouseEnter={() => autoplay && !editing && setPaused(true)}
+      onMouseLeave={() => autoplay && !editing && setPaused(false)}
     >
       <LayoutGroup>
         <AnimatePresence mode="wait" custom={direction}>
@@ -479,27 +492,22 @@ export default function App() {
             transition={variant.transition}
             style={{ position: "relative" }}
           >
-            {renderSlide(slide)}
+            {renderSlide(slide, editing, patchSlide)}
           </motion.div>
         </AnimatePresence>
       </LayoutGroup>
 
       {/* Slide progress bar */}
-      <div
-        style={{
-          position: "fixed", left: 0, right: 0, bottom: 0, height: 3,
-          background: "rgba(255,255,255,0.08)", zIndex: 50,
-        }}
-      >
+      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, height: 3, background: "rgba(255,255,255,0.08)", zIndex: 50 }}>
         <motion.div
-          animate={{ width: `${((index + 1) / slidesData.length) * 100}%` }}
+          animate={{ width: `${((index + 1) / slides.length) * 100}%` }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           style={{ height: "100%", background: slide.accent }}
         />
       </div>
 
-      {/* Autoplay countdown bar (top of screen) */}
-      {autoplay && (
+      {/* Autoplay countdown */}
+      {autoplay && !editing && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, background: "rgba(255,255,255,0.06)", zIndex: 50 }}>
           <motion.div
             key={`${index}-${tick}-${speed}-${paused}`}
@@ -511,17 +519,30 @@ export default function App() {
         </div>
       )}
 
+      {/* Edit-mode banner */}
+      {editing && (
+        <div style={{
+          position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 70,
+          background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
+          color: "#fff", padding: "8px 16px", borderRadius: 999, fontSize: 12,
+          letterSpacing: "0.18em", textTransform: "uppercase", backdropFilter: "blur(12px)",
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+        }}>
+          ✎ Editing — click any text · Esc to commit · E to exit
+        </div>
+      )}
+
       {/* HUD + controls */}
       <div
         style={{
           position: "fixed", bottom: 22, right: 28, zIndex: 60,
-          display: "flex", gap: 10, alignItems: "center",
+          display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", maxWidth: "70vw", justifyContent: "flex-end",
           fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
           fontSize: 12, color: "rgba(255,255,255,0.7)", letterSpacing: "0.12em", textTransform: "uppercase",
         }}
       >
         <span style={{ opacity: 0.6 }}>
-          {String(index + 1).padStart(2, "0")} / {String(slidesData.length).padStart(2, "0")}
+          {String(index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
         </span>
         <span style={{ opacity: 0.3 }}>·</span>
         <button onClick={(e) => { e.stopPropagation(); toggleAutoplay(); }} style={hudBtn(autoplay, slide.accent)}>
@@ -531,14 +552,27 @@ export default function App() {
           {speed}s
         </button>
         <span style={{ opacity: 0.3 }}>·</span>
-        <span style={{ opacity: 0.5 }}>{transitionKey}</span>
+        <button onClick={(e) => { e.stopPropagation(); cycleManualTransition(); }} style={hudBtn(!lastNavAuto, slide.accent)} title="Manual transition (T)">
+          ✋ {manualTransitionKey}
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); cycleAutoTransition(); }} style={hudBtn(lastNavAuto, slide.accent)} title="Autoplay transition (Y)">
+          ⟳ {autoTransitionKey}
+        </button>
+        <span style={{ opacity: 0.3 }}>·</span>
+        <button onClick={(e) => { e.stopPropagation(); setEditing((v) => !v); }} style={hudBtn(editing, slide.accent)} title="Toggle edit (E)">
+          {editing ? "✓ done" : "✎ edit"}
+        </button>
       </div>
 
-      {/* Click zones */}
-      <button onClick={manualPrev} aria-label="Previous"
-        style={{ position: "fixed", left: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "w-resize" }} />
-      <button onClick={manualNext} aria-label="Next"
-        style={{ position: "fixed", right: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "e-resize" }} />
+      {/* Click zones — disabled in edit mode so clicks reach the editable text */}
+      {!editing && (
+        <>
+          <button onClick={manualPrev} aria-label="Previous"
+            style={{ position: "fixed", left: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "w-resize" }} />
+          <button onClick={manualNext} aria-label="Next"
+            style={{ position: "fixed", right: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "e-resize" }} />
+        </>
+      )}
     </div>
   );
 }
