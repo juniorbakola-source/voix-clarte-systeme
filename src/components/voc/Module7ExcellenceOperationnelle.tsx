@@ -349,6 +349,17 @@ export default function Module7ExcellenceOperationnelle() {
         </div>
       </section>
 
+      <section className="space-y-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Keynote IA · Style Apple</p>
+          <h3 className="section-title mt-1 text-2xl">Générez vos slides d'excellence à la volée</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Storytelling exécutif minimal, transitions fluides, contenu éditable. Chaque slide est générée par Lovable AI, en français.
+          </p>
+        </div>
+        <AppleKeynote />
+      </section>
+
       {/* Puzzle Éléphant — Industrie amortisseurs */}
       <section className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-gradient-to-br from-[hsl(var(--elka-black))] to-[hsl(var(--elka-darkgray))] text-[hsl(var(--primary-foreground))] shadow-2xl">
         <div className="grid lg:grid-cols-[1fr_0.85fr]">
