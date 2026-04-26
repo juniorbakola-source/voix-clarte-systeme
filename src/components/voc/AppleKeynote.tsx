@@ -8,8 +8,8 @@ type Slide = { title: string; content: string };
 
 const initialSlides: Slide[] = [
   {
-    title: "Operational Excellence",
-    content: "Drive performance through clarity, discipline and continuous improvement.",
+    title: "Excellence Opérationnelle",
+    content: "Piloter la performance par la clarté, la discipline et l'amélioration continue.",
   },
 ];
 
@@ -33,18 +33,18 @@ export default function AppleKeynote() {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-slide", {
-        body: { topic: "Operational Excellence" },
+        body: { topic: "Excellence Opérationnelle" },
       });
       if (error) throw error;
-      if (!data?.title) throw new Error("Invalid AI response");
+      if (!data?.title) throw new Error("Réponse IA invalide");
       setSlides((prev) => {
         const next = [...prev, { title: data.title, content: data.content ?? "" }];
         setIndex(next.length - 1);
         return next;
       });
     } catch (e: any) {
-      const msg = e?.message ?? "Generation failed";
-      toast({ title: "AI generation error", description: msg, variant: "destructive" });
+      const msg = e?.message ?? "Échec de la génération";
+      toast({ title: "Erreur de génération IA", description: msg, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ export default function AppleKeynote() {
       <div className="flex items-center justify-between border-b border-border px-5 py-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            Apple-style Keynote · AI
+            Keynote style Apple · IA
           </p>
           <p className="text-sm font-semibold text-foreground">
             Slide {index + 1} / {slides.length}
@@ -124,13 +124,13 @@ export default function AppleKeynote() {
           className="absolute bottom-5 right-5 inline-flex items-center gap-2 rounded-full bg-[hsl(var(--elka-black))] px-5 py-3 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-lg transition hover:opacity-90 disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {loading ? "Generating…" : "Generate Slide"}
+          {loading ? "Génération…" : "Générer une slide"}
         </button>
       </div>
 
       <div className="flex items-center justify-between border-t border-border px-5 py-2 text-[11px] text-muted-foreground">
         <span>← / → pour naviguer · Cliquez le texte pour éditer</span>
-        <span>Powered by Lovable AI</span>
+        <span>Propulsé par Lovable AI</span>
       </div>
     </section>
   );

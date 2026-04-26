@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Expand, Eye, MapPin, Minimize2, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
 import { comexBriefing, dashboardViews, departments, elephantPuzzlePieces, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 import elephantHero from "@/assets/elephant-hero.png";
 import AppleKeynote from "@/components/voc/AppleKeynote";
@@ -183,6 +183,7 @@ export default function Module7ExcellenceOperationnelle() {
   const [actionsTaken, setActionsTaken] = useState<number[]>([]);
   const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
   const [takenPieces, setTakenPieces] = useState<number[]>([]);
+  const [fullscreen, setFullscreen] = useState(false);
   const slide = slides[current];
   const progress = ((current + 1) / slides.length) * 100;
   const score = useMemo(() => checked.reduce((sum, index) => sum + scoreRules[index].points, 0), [checked]);
@@ -198,8 +199,33 @@ export default function Module7ExcellenceOperationnelle() {
     setSlides((prev) => prev.map((item, index) => index === current ? { ...item, [field]: value } : item));
   };
 
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFullscreen(false);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [fullscreen]);
+
   return (
-    <div className="space-y-8">
+    <div className={fullscreen ? "fixed inset-0 z-[100] overflow-y-auto bg-background p-4 md:p-8 space-y-8" : "space-y-8"}>
+      <div className="flex items-center justify-end">
+        <button
+          onClick={() => setFullscreen((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
+          aria-label={fullscreen ? "Quitter le plein écran" : "Afficher en plein écran"}
+        >
+          {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+          {fullscreen ? "Quitter plein écran" : "Plein écran"}
+        </button>
+      </div>
+
       <section className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--elka-black))] text-[hsl(var(--primary-foreground))] shadow-2xl">
         <div className="grid min-h-[620px] lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative flex flex-col justify-between p-6 md:p-10">
@@ -321,6 +347,17 @@ export default function Module7ExcellenceOperationnelle() {
             </div>
           </aside>
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Keynote IA · Style Apple</p>
+          <h3 className="section-title mt-1 text-2xl">Générez vos slides d'excellence à la volée</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Storytelling exécutif minimal, transitions fluides, contenu éditable. Chaque slide est générée par Lovable AI, en français.
+          </p>
+        </div>
+        <AppleKeynote />
       </section>
 
       {/* Puzzle Éléphant — Industrie amortisseurs */}
@@ -725,17 +762,6 @@ export default function Module7ExcellenceOperationnelle() {
             );
           })}
         </div>
-      </section>
-
-      <section className="space-y-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Keynote IA · Apple style</p>
-          <h3 className="section-title mt-1 text-2xl">Générez vos slides d'excellence à la volée</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Storytelling exécutif minimal, transitions fluides, contenu éditable. Chaque slide est généré par Lovable AI.
-          </p>
-        </div>
-        <AppleKeynote />
       </section>
     </div>
   );

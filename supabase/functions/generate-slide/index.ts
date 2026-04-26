@@ -33,9 +33,9 @@ Deno.serve(async (req) => {
           {
             role: "system",
             content:
-              "You are an expert in operational excellence and executive storytelling for keynote presentations in the Apple style. Always respond by calling the make_slide tool. Title: 2-6 punchy words. Content: a single powerful sentence under 160 characters, no markdown, no quotes.",
+              "Tu es un expert en excellence opérationnelle et en storytelling exécutif pour des keynotes au style Apple. Réponds TOUJOURS en français en appelant l'outil make_slide. Titre : 2 à 6 mots percutants. Contenu : une seule phrase puissante de moins de 160 caractères, sans markdown, sans guillemets.",
           },
-          { role: "user", content: `Create a powerful keynote slide about: ${topic}` },
+          { role: "user", content: `Crée une slide de keynote percutante en français sur : ${topic}` },
         ],
         tools: [
           {
