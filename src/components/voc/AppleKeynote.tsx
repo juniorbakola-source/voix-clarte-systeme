@@ -33,10 +33,10 @@ export default function AppleKeynote() {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-slide", {
-        body: { topic: "Operational Excellence" },
+        body: { topic: "Excellence Opérationnelle" },
       });
       if (error) throw error;
-      if (!data?.title) throw new Error("Invalid AI response");
+      if (!data?.title) throw new Error("Réponse IA invalide");
       setSlides((prev) => {
         const next = [...prev, { title: data.title, content: data.content ?? "" }];
         setIndex(next.length - 1);
