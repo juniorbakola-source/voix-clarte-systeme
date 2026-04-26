@@ -124,7 +124,7 @@ export default function AppleKeynote() {
           className="absolute bottom-5 right-5 inline-flex items-center gap-2 rounded-full bg-[hsl(var(--elka-black))] px-5 py-3 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-lg transition hover:opacity-90 disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {loading ? "Generating…" : "Generate Slide"}
+          {loading ? "Génération…" : "Générer une slide"}
         </button>
       </div>
 
