@@ -8,8 +8,8 @@ type Slide = { title: string; content: string };
 
 const initialSlides: Slide[] = [
   {
-    title: "Operational Excellence",
-    content: "Drive performance through clarity, discipline and continuous improvement.",
+    title: "Excellence Opérationnelle",
+    content: "Piloter la performance par la clarté, la discipline et l'amélioration continue.",
   },
 ];
 
