@@ -57,7 +57,7 @@ export default function AppleKeynote() {
       <div className="flex items-center justify-between border-b border-border px-5 py-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            Apple-style Keynote · AI
+            Keynote style Apple · IA
           </p>
           <p className="text-sm font-semibold text-foreground">
             Slide {index + 1} / {slides.length}
