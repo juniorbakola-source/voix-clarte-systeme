@@ -43,8 +43,8 @@ export default function AppleKeynote() {
         return next;
       });
     } catch (e: any) {
-      const msg = e?.message ?? "Generation failed";
-      toast({ title: "AI generation error", description: msg, variant: "destructive" });
+      const msg = e?.message ?? "Échec de la génération";
+      toast({ title: "Erreur de génération IA", description: msg, variant: "destructive" });
     } finally {
       setLoading(false);
     }
