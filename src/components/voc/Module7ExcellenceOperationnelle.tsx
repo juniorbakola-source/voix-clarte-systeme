@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Eye, MapPin, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
 import { comexBriefing, dashboardViews, departments, elephantPuzzlePieces, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 import elephantHero from "@/assets/elephant-hero.png";
+import AppleKeynote from "@/components/voc/AppleKeynote";
 import sceneGlobal from "@/assets/elephant-scene1-global.jpg";
 import sceneFragmented from "@/assets/elephant-scene2-fragmented.jpg";
 import sceneDisappeared from "@/assets/elephant-scene3-disappeared.jpg";
@@ -724,6 +725,17 @@ export default function Module7ExcellenceOperationnelle() {
             );
           })}
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Keynote IA · Apple style</p>
+          <h3 className="section-title mt-1 text-2xl">Générez vos slides d'excellence à la volée</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Storytelling exécutif minimal, transitions fluides, contenu éditable. Chaque slide est généré par Lovable AI.
+          </p>
+        </div>
+        <AppleKeynote />
       </section>
     </div>
   );
