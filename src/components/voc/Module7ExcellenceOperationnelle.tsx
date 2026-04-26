@@ -752,17 +752,6 @@ export default function Module7ExcellenceOperationnelle() {
           })}
         </div>
       </section>
-
-      <section className="space-y-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Keynote IA · Apple style</p>
-          <h3 className="section-title mt-1 text-2xl">Générez vos slides d'excellence à la volée</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Storytelling exécutif minimal, transitions fluides, contenu éditable. Chaque slide est généré par Lovable AI.
-          </p>
-        </div>
-        <AppleKeynote />
-      </section>
     </div>
   );
 }
