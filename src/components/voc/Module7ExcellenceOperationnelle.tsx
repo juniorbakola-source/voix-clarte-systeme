@@ -183,6 +183,7 @@ export default function Module7ExcellenceOperationnelle() {
   const [actionsTaken, setActionsTaken] = useState<number[]>([]);
   const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
   const [takenPieces, setTakenPieces] = useState<number[]>([]);
+  const [fullscreen, setFullscreen] = useState(false);
   const slide = slides[current];
   const progress = ((current + 1) / slides.length) * 100;
   const score = useMemo(() => checked.reduce((sum, index) => sum + scoreRules[index].points, 0), [checked]);
