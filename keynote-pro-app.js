@@ -326,26 +326,69 @@ function renderSlide(slide) {
 /*  APP                                                                */
 /* ------------------------------------------------------------------ */
 
+// Autoplay speed presets (seconds per slide)
+const SPEED_PRESETS = [3, 5, 8, 12, 20];
+const DEFAULT_SPEED = 8;
+const LOOP_AUTOPLAY = true;
+
 export default function App() {
   const [index, setIndex] = useState(0);
   const [transitionKey, setTransitionKey] = useState("morph");
   const [direction, setDirection] = useState(1);
+  const [autoplay, setAutoplay] = useState(false);
+  const [speed, setSpeed] = useState(DEFAULT_SPEED); // seconds per slide
+  const [paused, setPaused] = useState(false);       // temporary pause (hover / manual nav)
+  const [tick, setTick] = useState(0);                // forces progress restart on manual nav
 
   const next = useCallback(() => {
     setDirection(1);
-    setIndex((i) => Math.min(i + 1, slidesData.length - 1));
-  }, []);
+    setIndex((i) => {
+      if (i >= slidesData.length - 1) return LOOP_AUTOPLAY && autoplay ? 0 : i;
+      return i + 1;
+    });
+  }, [autoplay]);
   const prev = useCallback(() => {
     setDirection(-1);
     setIndex((i) => Math.max(i - 1, 0));
   }, []);
 
+  const goTo = useCallback((i) => {
+    setDirection(i > index ? 1 : -1);
+    setIndex(Math.max(0, Math.min(slidesData.length - 1, i)));
+  }, [index]);
+
+  const toggleAutoplay = useCallback(() => setAutoplay((a) => !a), []);
+  const cycleSpeed = useCallback(() => {
+    setSpeed((s) => {
+      const i = SPEED_PRESETS.indexOf(s);
+      return SPEED_PRESETS[(i + 1) % SPEED_PRESETS.length];
+    });
+  }, []);
+
+  // Autoplay timer — restarts on slide change, speed change, pause toggle
+  useEffect(() => {
+    if (!autoplay || paused) return;
+    const ms = speed * 1000;
+    const id = setTimeout(() => next(), ms);
+    return () => clearTimeout(id);
+  }, [autoplay, paused, speed, index, tick, next]);
+
+  // Manual nav resets the autoplay countdown
+  const manualNext = useCallback(() => { setTick((t) => t + 1); next(); }, [next]);
+  const manualPrev = useCallback(() => { setTick((t) => t + 1); prev(); }, [prev]);
+
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); next(); }
-      else if (e.key === "ArrowLeft" || e.key === "Backspace") { e.preventDefault(); prev(); }
-      else if (e.key === "Home") setIndex(0);
-      else if (e.key === "End") setIndex(slidesData.length - 1);
+      if (e.key === "ArrowRight") { e.preventDefault(); manualNext(); }
+      else if (e.key === " ") {
+        // Space = play/pause when autoplay is on, otherwise advance
+        e.preventDefault();
+        if (autoplay) setPaused((p) => !p);
+        else manualNext();
+      }
+      else if (e.key === "ArrowLeft" || e.key === "Backspace") { e.preventDefault(); manualPrev(); }
+      else if (e.key === "Home") goTo(0);
+      else if (e.key === "End") goTo(slidesData.length - 1);
       else if (e.key.toLowerCase() === "f") {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
         else document.exitFullscreen?.();
@@ -354,11 +397,17 @@ export default function App() {
           const i = TRANSITION_KEYS.indexOf(k);
           return TRANSITION_KEYS[(i + 1) % TRANSITION_KEYS.length];
         });
+      } else if (e.key.toLowerCase() === "a") {
+        toggleAutoplay();
+      } else if (e.key.toLowerCase() === "s") {
+        cycleSpeed();
+      } else if (e.key.toLowerCase() === "p") {
+        setPaused((p) => !p);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [next, prev]);
+  }, [manualNext, manualPrev, goTo, autoplay, toggleAutoplay, cycleSpeed]);
 
   const slide = slidesData[index];
   const variant = useMemo(() => {
