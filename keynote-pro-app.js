@@ -421,7 +421,11 @@ export default function App() {
   }, [transitionKey, direction]);
 
   return (
-    <div style={{ background: "#000", overflow: "hidden", position: "relative" }}>
+    <div
+      style={{ background: "#000", overflow: "hidden", position: "relative" }}
+      onMouseEnter={() => autoplay && setPaused(true)}
+      onMouseLeave={() => autoplay && setPaused(false)}
+    >
       <LayoutGroup>
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
@@ -437,7 +441,7 @@ export default function App() {
         </AnimatePresence>
       </LayoutGroup>
 
-      {/* Progress bar */}
+      {/* Slide progress bar */}
       <div
         style={{
           position: "fixed", left: 0, right: 0, bottom: 0, height: 3,
@@ -451,25 +455,62 @@ export default function App() {
         />
       </div>
 
-      {/* HUD */}
+      {/* Autoplay countdown bar (top of screen) */}
+      {autoplay && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, background: "rgba(255,255,255,0.06)", zIndex: 50 }}>
+          <motion.div
+            key={`${index}-${tick}-${speed}-${paused}`}
+            initial={{ width: "0%" }}
+            animate={{ width: paused ? "0%" : "100%" }}
+            transition={{ duration: paused ? 0 : speed, ease: "linear" }}
+            style={{ height: "100%", background: slide.accent, opacity: 0.8 }}
+          />
+        </div>
+      )}
+
+      {/* HUD + controls */}
       <div
         style={{
-          position: "fixed", bottom: 24, right: 28, zIndex: 50,
-          display: "flex", gap: 14, alignItems: "center",
+          position: "fixed", bottom: 22, right: 28, zIndex: 60,
+          display: "flex", gap: 10, alignItems: "center",
           fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
-          fontSize: 12, color: "rgba(255,255,255,0.55)", letterSpacing: "0.12em", textTransform: "uppercase",
+          fontSize: 12, color: "rgba(255,255,255,0.7)", letterSpacing: "0.12em", textTransform: "uppercase",
         }}
       >
-        <span>{String(index + 1).padStart(2, "0")} / {String(slidesData.length).padStart(2, "0")}</span>
-        <span style={{ opacity: 0.4 }}>·</span>
-        <span>{transitionKey}</span>
+        <span style={{ opacity: 0.6 }}>
+          {String(index + 1).padStart(2, "0")} / {String(slidesData.length).padStart(2, "0")}
+        </span>
+        <span style={{ opacity: 0.3 }}>·</span>
+        <button onClick={(e) => { e.stopPropagation(); toggleAutoplay(); }} style={hudBtn(autoplay, slide.accent)}>
+          {autoplay ? (paused ? "▶ resume" : "⏸ pause") : "▶ auto"}
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); cycleSpeed(); }} style={hudBtn(false, slide.accent)}>
+          {speed}s
+        </button>
+        <span style={{ opacity: 0.3 }}>·</span>
+        <span style={{ opacity: 0.5 }}>{transitionKey}</span>
       </div>
 
       {/* Click zones */}
-      <button onClick={prev} aria-label="Previous"
+      <button onClick={manualPrev} aria-label="Previous"
         style={{ position: "fixed", left: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "w-resize" }} />
-      <button onClick={next} aria-label="Next"
+      <button onClick={manualNext} aria-label="Next"
         style={{ position: "fixed", right: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "e-resize" }} />
     </div>
   );
+}
+
+function hudBtn(active, accent) {
+  return {
+    background: active ? `${accent}22` : "rgba(255,255,255,0.05)",
+    color: active ? accent : "rgba(255,255,255,0.8)",
+    border: `1px solid ${active ? accent + "66" : "rgba(255,255,255,0.12)"}`,
+    borderRadius: 999,
+    padding: "6px 12px",
+    fontSize: 11,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    fontFamily: "inherit",
+  };
 }
