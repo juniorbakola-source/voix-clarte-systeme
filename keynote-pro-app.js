@@ -139,185 +139,228 @@ const baseSlide = {
   letterSpacing: "-0.02em",
 };
 
-function CoverSlide({ slide }) {
+/**
+ * Inline-editable text. Click to edit when `editing` is true.
+ * Uses contentEditable to preserve typography & avoid input boxes.
+ */
+function Editable({ value, onChange, editing, as = "span", style, multiline = false, placeholder }) {
+  const Tag = as;
+  const ref = React.useRef(null);
+
+  // Keep DOM in sync when value changes externally and field isn't focused.
+  React.useEffect(() => {
+    if (ref.current && document.activeElement !== ref.current) {
+      if (ref.current.innerText !== (value ?? "")) ref.current.innerText = value ?? "";
+    }
+  }, [value]);
+
+  const handleBlur = () => {
+    if (!ref.current) return;
+    onChange?.(ref.current.innerText);
+  };
+  const handleKeyDown = (e) => {
+    if (!multiline && e.key === "Enter") { e.preventDefault(); ref.current?.blur(); }
+    if (e.key === "Escape") { e.preventDefault(); ref.current?.blur(); }
+    e.stopPropagation(); // never trigger global shortcuts while typing
+  };
+
+  return (
+    <Tag
+      ref={ref}
+      contentEditable={editing}
+      suppressContentEditableWarning
+      spellCheck={false}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      data-placeholder={placeholder}
+      style={{
+        ...style,
+        outline: "none",
+        cursor: editing ? "text" : "default",
+        borderRadius: editing ? 6 : 0,
+        boxShadow: editing ? "inset 0 0 0 1px rgba(255,255,255,0.18)" : "none",
+        padding: editing ? "2px 6px" : 0,
+        margin: editing ? "-2px -6px" : 0,
+        transition: "box-shadow 0.2s ease",
+        minWidth: editing ? 24 : undefined,
+      }}
+    >
+      {value}
+    </Tag>
+  );
+}
+
+function CoverSlide({ slide, editing, patch }) {
   return (
     <div style={{ ...baseSlide }}>
-      <motion.p
-        layoutId={`eyebrow-${slide.id}`}
+      <Editable
+        as="p" editing={editing} value={slide.eyebrow}
+        onChange={(v) => patch({ eyebrow: v })}
         style={{
-          color: slide.accent,
-          fontSize: 18,
-          fontWeight: 600,
-          textTransform: "uppercase",
-          letterSpacing: "0.2em",
-          marginBottom: 24,
+          color: slide.accent, fontSize: 18, fontWeight: 600,
+          textTransform: "uppercase", letterSpacing: "0.2em",
+          marginBottom: 24, display: "block",
         }}
-      >
-        {slide.eyebrow}
-      </motion.p>
-      <motion.h1
-        layoutId={`title-${slide.id}`}
-        style={{ fontSize: "clamp(56px, 8vw, 128px)", fontWeight: 700, lineHeight: 1.02, margin: 0 }}
-      >
-        {slide.title}
-      </motion.h1>
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 0.7, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.6 }}
-        style={{ fontSize: 26, marginTop: 28, maxWidth: 880, lineHeight: 1.4 }}
-      >
-        {slide.subtitle}
-      </motion.p>
+      />
+      <Editable
+        as="h1" editing={editing} value={slide.title}
+        onChange={(v) => patch({ title: v })}
+        style={{ fontSize: "clamp(56px, 8vw, 128px)", fontWeight: 700, lineHeight: 1.02, margin: 0, display: "block" }}
+      />
+      <Editable
+        as="p" editing={editing} value={slide.subtitle} multiline
+        onChange={(v) => patch({ subtitle: v })}
+        style={{ fontSize: 26, marginTop: 28, maxWidth: 880, lineHeight: 1.4, opacity: 0.7, display: "block" }}
+      />
     </div>
   );
 }
 
-function StatementSlide({ slide }) {
+function StatementSlide({ slide, editing, patch }) {
   return (
     <div style={{ ...baseSlide, alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-      <motion.h1
-        initial={{ opacity: 0, scale: 0.9, letterSpacing: "0.4em" }}
-        animate={{ opacity: 1, scale: 1, letterSpacing: "0.05em" }}
-        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      <Editable
+        as="h1" editing={editing} value={slide.word}
+        onChange={(v) => patch({ word: v })}
         style={{
-          fontSize: "clamp(72px, 12vw, 220px)",
-          fontWeight: 800,
-          color: slide.accent,
-          margin: 0,
+          fontSize: "clamp(72px, 12vw, 220px)", fontWeight: 800,
+          color: slide.accent, margin: 0, display: "block",
+          letterSpacing: "0.05em",
         }}
-      >
-        {slide.word}
-      </motion.h1>
-      <motion.p
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 0.75, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.6 }}
-        style={{ fontSize: 24, marginTop: 36, maxWidth: 760 }}
-      >
-        {slide.caption}
-      </motion.p>
+      />
+      <Editable
+        as="p" editing={editing} value={slide.caption} multiline
+        onChange={(v) => patch({ caption: v })}
+        style={{ fontSize: 24, marginTop: 36, maxWidth: 760, opacity: 0.75, display: "block" }}
+      />
     </div>
   );
 }
 
-function SplitSlide({ slide }) {
+function SplitSlide({ slide, editing, patch }) {
+  const updateBullet = (i, v) => {
+    const bullets = [...slide.bullets];
+    bullets[i] = v;
+    patch({ bullets });
+  };
   return (
     <div style={{ ...baseSlide, flexDirection: "row", alignItems: "center", gap: 80 }}>
-      <motion.h2
-        initial={{ opacity: 0, x: -40 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
+      <Editable
+        as="h2" editing={editing} value={slide.title} multiline
+        onChange={(v) => patch({ title: v })}
         style={{ flex: 1, fontSize: "clamp(40px, 5vw, 76px)", fontWeight: 700, lineHeight: 1.1, margin: 0 }}
-      >
-        {slide.title}
-      </motion.h2>
+      />
       <ul style={{ flex: 1, listStyle: "none", padding: 0, margin: 0 }}>
         {slide.bullets.map((b, i) => (
-          <motion.li
-            key={b}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 + i * 0.12, duration: 0.5 }}
+          <li
+            key={i}
             style={{
-              fontSize: 28,
-              padding: "20px 0",
+              fontSize: 28, padding: "20px 0",
               borderBottom: "1px solid rgba(255,255,255,0.12)",
-              display: "flex",
-              alignItems: "center",
-              gap: 18,
+              display: "flex", alignItems: "center", gap: 18,
             }}
           >
             <span style={{ color: slide.accent, fontWeight: 700 }}>0{i + 1}</span>
-            {b}
-          </motion.li>
+            <Editable
+              as="span" editing={editing} value={b}
+              onChange={(v) => updateBullet(i, v)}
+              style={{ flex: 1 }}
+            />
+          </li>
         ))}
       </ul>
     </div>
   );
 }
 
-function MetricsSlide({ slide }) {
+function MetricsSlide({ slide, editing, patch }) {
+  const updateMetric = (i, key, v) => {
+    const metrics = slide.metrics.map((m, j) => (j === i ? { ...m, [key]: v } : m));
+    patch({ metrics });
+  };
   return (
     <div style={{ ...baseSlide }}>
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{ fontSize: "clamp(40px, 5vw, 72px)", fontWeight: 700, margin: 0, marginBottom: 56 }}
-      >
-        {slide.title}
-      </motion.h2>
+      <Editable
+        as="h2" editing={editing} value={slide.title}
+        onChange={(v) => patch({ title: v })}
+        style={{ fontSize: "clamp(40px, 5vw, 72px)", fontWeight: 700, margin: 0, marginBottom: 56, display: "block" }}
+      />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32 }}>
         {slide.metrics.map((m, i) => (
-          <motion.div
-            key={m.label}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 + i * 0.1, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          <div
+            key={i}
             style={{
-              padding: 28,
-              borderRadius: 20,
+              padding: 28, borderRadius: 20,
               background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(255,255,255,0.08)",
               backdropFilter: "blur(12px)",
             }}
           >
-            <div style={{ fontSize: 14, opacity: 0.6, textTransform: "uppercase", letterSpacing: "0.15em" }}>
-              {m.label}
-            </div>
-            <div style={{ fontSize: 56, fontWeight: 700, marginTop: 12, color: slide.accent }}>
-              {m.value}
-            </div>
-            <div style={{ fontSize: 16, opacity: 0.7, marginTop: 6 }}>{m.delta}</div>
-          </motion.div>
+            <Editable as="div" editing={editing} value={m.label}
+              onChange={(v) => updateMetric(i, "label", v)}
+              style={{ fontSize: 14, opacity: 0.6, textTransform: "uppercase", letterSpacing: "0.15em" }}
+            />
+            <Editable as="div" editing={editing} value={m.value}
+              onChange={(v) => updateMetric(i, "value", v)}
+              style={{ fontSize: 56, fontWeight: 700, marginTop: 12, color: slide.accent }}
+            />
+            <Editable as="div" editing={editing} value={m.delta}
+              onChange={(v) => updateMetric(i, "delta", v)}
+              style={{ fontSize: 16, opacity: 0.7, marginTop: 6 }}
+            />
+          </div>
         ))}
       </div>
     </div>
   );
 }
 
-function PillarsSlide({ slide }) {
+function PillarsSlide({ slide, editing, patch }) {
+  const updatePillar = (i, key, v) => {
+    const pillars = slide.pillars.map((p, j) => (j === i ? { ...p, [key]: v } : p));
+    patch({ pillars });
+  };
   return (
     <div style={{ ...baseSlide }}>
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{ fontSize: "clamp(40px, 5vw, 72px)", fontWeight: 700, margin: 0, marginBottom: 56 }}
-      >
-        {slide.title}
-      </motion.h2>
+      <Editable as="h2" editing={editing} value={slide.title}
+        onChange={(v) => patch({ title: v })}
+        style={{ fontSize: "clamp(40px, 5vw, 72px)", fontWeight: 700, margin: 0, marginBottom: 56, display: "block" }}
+      />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
         {slide.pillars.map((p, i) => (
-          <motion.div
-            key={p.name}
-            initial={{ opacity: 0, y: 40, rotateX: -10 }}
-            animate={{ opacity: 1, y: 0, rotateX: 0 }}
-            transition={{ delay: 0.15 + i * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          <div
+            key={i}
             style={{
-              padding: 32,
-              borderRadius: 24,
+              padding: 32, borderRadius: 24,
               background: `linear-gradient(160deg, ${slide.accent}22, transparent)`,
               border: `1px solid ${slide.accent}55`,
               minHeight: 240,
             }}
           >
             <div style={{ fontSize: 14, opacity: 0.5, marginBottom: 12 }}>0{i + 1}</div>
-            <div style={{ fontSize: 28, fontWeight: 700 }}>{p.name}</div>
-            <div style={{ fontSize: 16, opacity: 0.75, marginTop: 14, lineHeight: 1.5 }}>{p.text}</div>
-          </motion.div>
+            <Editable as="div" editing={editing} value={p.name}
+              onChange={(v) => updatePillar(i, "name", v)}
+              style={{ fontSize: 28, fontWeight: 700 }}
+            />
+            <Editable as="div" editing={editing} value={p.text} multiline
+              onChange={(v) => updatePillar(i, "text", v)}
+              style={{ fontSize: 16, opacity: 0.75, marginTop: 14, lineHeight: 1.5 }}
+            />
+          </div>
         ))}
       </div>
     </div>
   );
 }
 
-function renderSlide(slide) {
+function renderSlide(slide, editing, patch) {
+  const props = { slide, editing, patch };
   switch (slide.kind) {
-    case "cover": return <CoverSlide slide={slide} />;
-    case "statement": return <StatementSlide slide={slide} />;
-    case "split": return <SplitSlide slide={slide} />;
-    case "metrics": return <MetricsSlide slide={slide} />;
-    case "pillars": return <PillarsSlide slide={slide} />;
+    case "cover": return <CoverSlide {...props} />;
+    case "statement": return <StatementSlide {...props} />;
+    case "split": return <SplitSlide {...props} />;
+    case "metrics": return <MetricsSlide {...props} />;
+    case "pillars": return <PillarsSlide {...props} />;
     default: return null;
   }
 }
@@ -332,30 +375,43 @@ const DEFAULT_SPEED = 8;
 const LOOP_AUTOPLAY = true;
 
 export default function App() {
+  const [slides, setSlides] = useState(slidesData);
   const [index, setIndex] = useState(0);
-  const [transitionKey, setTransitionKey] = useState("morph");
+  // Two independent transition styles
+  const [manualTransitionKey, setManualTransitionKey] = useState("slide");
+  const [autoTransitionKey, setAutoTransitionKey] = useState("morph");
   const [direction, setDirection] = useState(1);
   const [autoplay, setAutoplay] = useState(false);
-  const [speed, setSpeed] = useState(DEFAULT_SPEED); // seconds per slide
-  const [paused, setPaused] = useState(false);       // temporary pause (hover / manual nav)
-  const [tick, setTick] = useState(0);                // forces progress restart on manual nav
+  const [speed, setSpeed] = useState(DEFAULT_SPEED);
+  const [paused, setPaused] = useState(false);
+  const [tick, setTick] = useState(0);
+  const [editing, setEditing] = useState(false);
+  // Track whether the LAST nav was driven by the autoplay timer
+  const [lastNavAuto, setLastNavAuto] = useState(false);
 
-  const next = useCallback(() => {
+  // Patch current slide (used by Editable inside slides)
+  const patchSlide = useCallback((partial) => {
+    setSlides((arr) => arr.map((s, i) => (i === index ? { ...s, ...partial } : s)));
+  }, [index]);
+
+  const next = useCallback((fromAuto = false) => {
+    setLastNavAuto(fromAuto);
     setDirection(1);
     setIndex((i) => {
-      if (i >= slidesData.length - 1) return LOOP_AUTOPLAY && autoplay ? 0 : i;
+      if (i >= slides.length - 1) return LOOP_AUTOPLAY && autoplay ? 0 : i;
       return i + 1;
     });
-  }, [autoplay]);
+  }, [autoplay, slides.length]);
   const prev = useCallback(() => {
+    setLastNavAuto(false);
     setDirection(-1);
     setIndex((i) => Math.max(i - 1, 0));
   }, []);
-
   const goTo = useCallback((i) => {
+    setLastNavAuto(false);
     setDirection(i > index ? 1 : -1);
-    setIndex(Math.max(0, Math.min(slidesData.length - 1, i)));
-  }, [index]);
+    setIndex(Math.max(0, Math.min(slides.length - 1, i)));
+  }, [index, slides.length]);
 
   const toggleAutoplay = useCallback(() => setAutoplay((a) => !a), []);
   const cycleSpeed = useCallback(() => {
@@ -364,67 +420,67 @@ export default function App() {
       return SPEED_PRESETS[(i + 1) % SPEED_PRESETS.length];
     });
   }, []);
+  const cycleManualTransition = useCallback(() => {
+    setManualTransitionKey((k) => TRANSITION_KEYS[(TRANSITION_KEYS.indexOf(k) + 1) % TRANSITION_KEYS.length]);
+  }, []);
+  const cycleAutoTransition = useCallback(() => {
+    setAutoTransitionKey((k) => TRANSITION_KEYS[(TRANSITION_KEYS.indexOf(k) + 1) % TRANSITION_KEYS.length]);
+  }, []);
 
-  // Autoplay timer — restarts on slide change, speed change, pause toggle
+  // Autoplay timer
   useEffect(() => {
-    if (!autoplay || paused) return;
-    const ms = speed * 1000;
-    const id = setTimeout(() => next(), ms);
+    if (!autoplay || paused || editing) return;
+    const id = setTimeout(() => next(true), speed * 1000);
     return () => clearTimeout(id);
-  }, [autoplay, paused, speed, index, tick, next]);
+  }, [autoplay, paused, editing, speed, index, tick, next]);
 
-  // Manual nav resets the autoplay countdown
-  const manualNext = useCallback(() => { setTick((t) => t + 1); next(); }, [next]);
+  const manualNext = useCallback(() => { setTick((t) => t + 1); next(false); }, [next]);
   const manualPrev = useCallback(() => { setTick((t) => t + 1); prev(); }, [prev]);
 
   useEffect(() => {
     const onKey = (e) => {
+      // Don't hijack keys while user is typing inside an editable field
+      if (editing && e.target?.isContentEditable) return;
       if (e.key === "ArrowRight") { e.preventDefault(); manualNext(); }
       else if (e.key === " ") {
-        // Space = play/pause when autoplay is on, otherwise advance
         e.preventDefault();
-        if (autoplay) setPaused((p) => !p);
-        else manualNext();
+        if (autoplay) setPaused((p) => !p); else manualNext();
       }
       else if (e.key === "ArrowLeft" || e.key === "Backspace") { e.preventDefault(); manualPrev(); }
       else if (e.key === "Home") goTo(0);
-      else if (e.key === "End") goTo(slidesData.length - 1);
+      else if (e.key === "End") goTo(slides.length - 1);
       else if (e.key.toLowerCase() === "f") {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
         else document.exitFullscreen?.();
-      } else if (e.key.toLowerCase() === "t") {
-        setTransitionKey((k) => {
-          const i = TRANSITION_KEYS.indexOf(k);
-          return TRANSITION_KEYS[(i + 1) % TRANSITION_KEYS.length];
-        });
-      } else if (e.key.toLowerCase() === "a") {
-        toggleAutoplay();
-      } else if (e.key.toLowerCase() === "s") {
-        cycleSpeed();
-      } else if (e.key.toLowerCase() === "p") {
-        setPaused((p) => !p);
-      }
+      } else if (e.key.toLowerCase() === "t") { cycleManualTransition(); }
+      else if (e.key.toLowerCase() === "y") { cycleAutoTransition(); }
+      else if (e.key.toLowerCase() === "a") { toggleAutoplay(); }
+      else if (e.key.toLowerCase() === "s") { cycleSpeed(); }
+      else if (e.key.toLowerCase() === "p") { setPaused((p) => !p); }
+      else if (e.key.toLowerCase() === "e") { setEditing((v) => !v); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [manualNext, manualPrev, goTo, autoplay, toggleAutoplay, cycleSpeed]);
+  }, [editing, manualNext, manualPrev, goTo, autoplay, toggleAutoplay, cycleSpeed, cycleManualTransition, cycleAutoTransition, slides.length]);
 
-  const slide = slidesData[index];
+  const slide = slides[index];
+  // Pick the active transition based on what triggered the nav
+  const activeTransitionKey = lastNavAuto ? autoTransitionKey : manualTransitionKey;
   const variant = useMemo(() => {
-    const base = TRANSITIONS[transitionKey];
-    if (transitionKey !== "slide") return base;
+    const base = TRANSITIONS[activeTransitionKey];
+    if (activeTransitionKey !== "slide") return base;
     return {
       ...base,
       initial: { opacity: 0, x: 80 * direction },
       exit: { opacity: 0, x: -80 * direction },
     };
-  }, [transitionKey, direction]);
+  }, [activeTransitionKey, direction]);
 
   return (
     <div
       style={{ background: "#000", overflow: "hidden", position: "relative" }}
-      onMouseEnter={() => autoplay && setPaused(true)}
-      onMouseLeave={() => autoplay && setPaused(false)}
+      onMouseEnter={() => autoplay && !editing && setPaused(true)}
+      onMouseLeave={() => autoplay && !editing && setPaused(false)}
     >
       <LayoutGroup>
         <AnimatePresence mode="wait" custom={direction}>
@@ -436,27 +492,22 @@ export default function App() {
             transition={variant.transition}
             style={{ position: "relative" }}
           >
-            {renderSlide(slide)}
+            {renderSlide(slide, editing, patchSlide)}
           </motion.div>
         </AnimatePresence>
       </LayoutGroup>
 
       {/* Slide progress bar */}
-      <div
-        style={{
-          position: "fixed", left: 0, right: 0, bottom: 0, height: 3,
-          background: "rgba(255,255,255,0.08)", zIndex: 50,
-        }}
-      >
+      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, height: 3, background: "rgba(255,255,255,0.08)", zIndex: 50 }}>
         <motion.div
-          animate={{ width: `${((index + 1) / slidesData.length) * 100}%` }}
+          animate={{ width: `${((index + 1) / slides.length) * 100}%` }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           style={{ height: "100%", background: slide.accent }}
         />
       </div>
 
-      {/* Autoplay countdown bar (top of screen) */}
-      {autoplay && (
+      {/* Autoplay countdown */}
+      {autoplay && !editing && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, background: "rgba(255,255,255,0.06)", zIndex: 50 }}>
           <motion.div
             key={`${index}-${tick}-${speed}-${paused}`}
@@ -468,17 +519,30 @@ export default function App() {
         </div>
       )}
 
+      {/* Edit-mode banner */}
+      {editing && (
+        <div style={{
+          position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 70,
+          background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
+          color: "#fff", padding: "8px 16px", borderRadius: 999, fontSize: 12,
+          letterSpacing: "0.18em", textTransform: "uppercase", backdropFilter: "blur(12px)",
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+        }}>
+          ✎ Editing — click any text · Esc to commit · E to exit
+        </div>
+      )}
+
       {/* HUD + controls */}
       <div
         style={{
           position: "fixed", bottom: 22, right: 28, zIndex: 60,
-          display: "flex", gap: 10, alignItems: "center",
+          display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", maxWidth: "70vw", justifyContent: "flex-end",
           fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
           fontSize: 12, color: "rgba(255,255,255,0.7)", letterSpacing: "0.12em", textTransform: "uppercase",
         }}
       >
         <span style={{ opacity: 0.6 }}>
-          {String(index + 1).padStart(2, "0")} / {String(slidesData.length).padStart(2, "0")}
+          {String(index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
         </span>
         <span style={{ opacity: 0.3 }}>·</span>
         <button onClick={(e) => { e.stopPropagation(); toggleAutoplay(); }} style={hudBtn(autoplay, slide.accent)}>
@@ -488,14 +552,27 @@ export default function App() {
           {speed}s
         </button>
         <span style={{ opacity: 0.3 }}>·</span>
-        <span style={{ opacity: 0.5 }}>{transitionKey}</span>
+        <button onClick={(e) => { e.stopPropagation(); cycleManualTransition(); }} style={hudBtn(!lastNavAuto, slide.accent)} title="Manual transition (T)">
+          ✋ {manualTransitionKey}
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); cycleAutoTransition(); }} style={hudBtn(lastNavAuto, slide.accent)} title="Autoplay transition (Y)">
+          ⟳ {autoTransitionKey}
+        </button>
+        <span style={{ opacity: 0.3 }}>·</span>
+        <button onClick={(e) => { e.stopPropagation(); setEditing((v) => !v); }} style={hudBtn(editing, slide.accent)} title="Toggle edit (E)">
+          {editing ? "✓ done" : "✎ edit"}
+        </button>
       </div>
 
-      {/* Click zones */}
-      <button onClick={manualPrev} aria-label="Previous"
-        style={{ position: "fixed", left: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "w-resize" }} />
-      <button onClick={manualNext} aria-label="Next"
-        style={{ position: "fixed", right: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "e-resize" }} />
+      {/* Click zones — disabled in edit mode so clicks reach the editable text */}
+      {!editing && (
+        <>
+          <button onClick={manualPrev} aria-label="Previous"
+            style={{ position: "fixed", left: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "w-resize" }} />
+          <button onClick={manualNext} aria-label="Next"
+            style={{ position: "fixed", right: 0, top: 0, bottom: 0, width: "20%", background: "transparent", border: 0, cursor: "e-resize" }} />
+        </>
+      )}
     </div>
   );
 }
