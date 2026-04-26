@@ -130,7 +130,7 @@ export default function AppleKeynote() {
 
       <div className="flex items-center justify-between border-t border-border px-5 py-2 text-[11px] text-muted-foreground">
         <span>← / → pour naviguer · Cliquez le texte pour éditer</span>
-        <span>Powered by Lovable AI</span>
+        <span>Propulsé par Lovable AI</span>
       </div>
     </section>
   );
