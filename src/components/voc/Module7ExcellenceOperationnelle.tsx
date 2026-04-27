@@ -260,6 +260,7 @@ export default function Module7ExcellenceOperationnelle() {
   // Helpers — chaque section est définie comme nœud, puis ordonnée dynamiquement
   const sectionNodes: Record<string, ReactNode> = {};
 
+  sectionNodes["hero"] = (
       <section className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--elka-black))] text-[hsl(var(--primary-foreground))] shadow-2xl">
         <div className="grid min-h-[620px] lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative flex flex-col justify-between p-6 md:p-10">
@@ -382,7 +383,9 @@ export default function Module7ExcellenceOperationnelle() {
           </aside>
         </div>
       </section>
+  );
 
+  sectionNodes["keynote-ai"] = (
       <section className="space-y-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Keynote IA · Style Apple</p>
@@ -393,8 +396,10 @@ export default function Module7ExcellenceOperationnelle() {
         </div>
         <AppleKeynote />
       </section>
+  );
 
       {/* Quiz Excellence Opérationnelle */}
+  sectionNodes["quiz"] = (
       <section className="rounded-lg border border-border bg-secondary/30 p-6 md:p-8">
         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--elka-red))]">Évaluation interactive</p>
         <h3 className="section-title mt-1 text-2xl">Testez vos acquis</h3>
@@ -403,8 +408,10 @@ export default function Module7ExcellenceOperationnelle() {
         </p>
         <QuizExcellence />
       </section>
+  );
 
       {/* Puzzle Éléphant — Industrie amortisseurs */}
+  sectionNodes["elephant"] = (
       <section className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-gradient-to-br from-[hsl(var(--elka-black))] to-[hsl(var(--elka-darkgray))] text-[hsl(var(--primary-foreground))] shadow-2xl">
         <div className="grid lg:grid-cols-[1fr_0.85fr]">
           {/* Visualisation éléphant + puzzle */}
@@ -528,7 +535,9 @@ export default function Module7ExcellenceOperationnelle() {
           </aside>
         </div>
       </section>
+  );
 
+  sectionNodes["dashboard"] = (
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="consulting-card">
           <div className="mb-5 flex items-start justify-between gap-4">
@@ -807,6 +816,74 @@ export default function Module7ExcellenceOperationnelle() {
           })}
         </div>
       </section>
+  );
+
+  return (
+    <div
+      className={fullscreen ? "fixed inset-0 z-[100] overflow-y-auto bg-background p-4 md:p-8 space-y-8" : "space-y-8"}
+      data-customizing={customizing ? "true" : "false"}
+    >
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <button
+          onClick={() => setCustomizing((v) => !v)}
+          className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] transition ${customizing ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "border-[hsl(var(--border))] bg-card text-foreground hover:bg-secondary"}`}
+          aria-label={customizing ? "Terminer la personnalisation" : "Personnaliser la présentation"}
+        >
+          <Move className="h-4 w-4" />
+          {customizing ? "Terminer" : "Personnaliser"}
+        </button>
+        {customizing && (
+          <button
+            onClick={() => setSectionOrder(defaultSectionOrder)}
+            className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Réinitialiser l'ordre
+          </button>
+        )}
+        <button
+          onClick={() => setFullscreen((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
+          aria-label={fullscreen ? "Quitter le plein écran" : "Afficher en plein écran"}
+        >
+          {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+          {fullscreen ? "Quitter plein écran" : "Plein écran"}
+        </button>
+      </div>
+
+      {customizing && (
+        <div className="rounded-md border border-dashed border-[hsl(var(--elka-red))]/50 bg-[hsl(var(--elka-red))]/5 px-4 py-3 text-xs text-foreground">
+          <strong className="text-[hsl(var(--elka-red))]">Mode personnalisation actif.</strong> Glissez les cartes via la poignée pour réorganiser. Cliquez sur n'importe quel texte pour le modifier directement.
+        </div>
+      )}
+
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
+          <div
+            className="space-y-8"
+            onInput={(e) => {
+              // contentEditable inline edits — rester non-contrôlé
+              e.stopPropagation();
+            }}
+          >
+            {sectionOrder.map((id) => {
+              const node = sectionNodes[id];
+              if (!node) return null;
+              return (
+                <SortableSection key={id} id={id} customizing={customizing} label={sectionLabels[id]}>
+                  <div
+                    contentEditable={customizing}
+                    suppressContentEditableWarning
+                    className={customizing ? "outline-none focus-within:outline-none" : ""}
+                  >
+                    {node}
+                  </div>
+                </SortableSection>
+              );
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
