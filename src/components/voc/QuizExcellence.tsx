@@ -9,10 +9,10 @@ type Question = {
 
 const questions: Question[] = [
   {
-    question: "Quel est l'objectif de l'excellence opérationnelle ?",
+    question: "Quel est l'objectif principal de l'excellence opérationnelle ?",
     options: [
       "Réduire uniquement les coûts",
-      "Améliorer la performance globale",
+      "Améliorer la performance globale et durable",
       "Augmenter le nombre de réunions",
     ],
     answer: 1,
@@ -21,14 +21,81 @@ const questions: Question[] = [
     question: "Que signifie « Lean » ?",
     options: [
       "Augmenter la production à tout prix",
-      "Éliminer les gaspillages",
+      "Éliminer les gaspillages (Muda)",
       "Complexifier les processus",
     ],
     answer: 1,
   },
   {
     question: "Quel pilier soutient l'amélioration continue ?",
-    options: ["Le contrôle hiérarchique", "Le Kaizen et l'engagement terrain", "Le reporting mensuel"],
+    options: [
+      "Le contrôle hiérarchique strict",
+      "Le Kaizen et l'engagement terrain",
+      "Le reporting mensuel uniquement",
+    ],
+    answer: 1,
+  },
+  {
+    question: "Que mesure un indicateur OEE / TRS ?",
+    options: [
+      "La satisfaction client",
+      "L'efficacité globale d'un équipement",
+      "Le chiffre d'affaires",
+    ],
+    answer: 1,
+  },
+  {
+    question: "Qu'est-ce qu'un « Gemba walk » ?",
+    options: [
+      "Une réunion en salle de direction",
+      "Une marche d'observation sur le terrain",
+      "Un audit financier",
+    ],
+    answer: 1,
+  },
+  {
+    question: "À quoi sert la méthode des 5S ?",
+    options: [
+      "À organiser et standardiser le poste de travail",
+      "À recruter cinq nouveaux collaborateurs",
+      "À fixer cinq objectifs annuels",
+    ],
+    answer: 0,
+  },
+  {
+    question: "Que représente la VSM (Value Stream Mapping) ?",
+    options: [
+      "Une carte du flux de valeur",
+      "Un tableau de bord financier",
+      "Un organigramme RH",
+    ],
+    answer: 0,
+  },
+  {
+    question: "Quel est le but du SMED ?",
+    options: [
+      "Réduire les temps de changement de série",
+      "Augmenter la taille des lots",
+      "Allonger les cycles de production",
+    ],
+    answer: 0,
+  },
+  {
+    question: "Quelle démarche structure la résolution de problème ?",
+    options: [
+      "PDCA (Plan-Do-Check-Act)",
+      "L'improvisation managériale",
+      "Le copier-coller de bonnes pratiques",
+    ],
+    answer: 0,
+  },
+  {
+    question: "Quel rôle joue le leadership dans l'excellence opérationnelle ?",
+    options: [
+      "Imposer des objectifs sans dialogue",
+      "Donner du sens, soutenir et faire grandir les équipes",
+      "Déléguer entièrement sans suivi",
+    ],
     answer: 1,
   },
 ];
@@ -43,8 +110,7 @@ export default function QuizExcellence() {
     if (selected !== null) return;
     setSelected(i);
     const isCorrect = i === questions[index].answer;
-    const newScore = isCorrect ? score + 1 : score;
-    if (isCorrect) setScore(newScore);
+    if (isCorrect) setScore((s) => s + 1);
 
     setTimeout(() => {
       if (index < questions.length - 1) {
@@ -66,7 +132,7 @@ export default function QuizExcellence() {
   if (finished) {
     const pct = Math.round((score / questions.length) * 100);
     return (
-      <section className="rounded-xl border border-border bg-card p-10 text-center">
+      <div className="rounded-xl border border-border bg-card p-10 text-center">
         <Trophy className="mx-auto h-12 w-12 text-[hsl(var(--elka-red))]" />
         <h3 className="section-title mt-4 text-2xl">Quiz terminé</h3>
         <p className="mt-2 text-muted-foreground">
@@ -78,14 +144,14 @@ export default function QuizExcellence() {
         >
           <RotateCcw className="h-4 w-4" /> Recommencer
         </button>
-      </section>
+      </div>
     );
   }
 
   const q = questions[index];
 
   return (
-    <section className="rounded-xl border border-border bg-card p-6 md:p-8">
+    <div className="rounded-xl border border-border bg-card p-6 md:p-8">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--elka-red))]">
           Quiz · Excellence Opérationnelle
@@ -131,6 +197,6 @@ export default function QuizExcellence() {
       </div>
 
       <p className="mt-5 text-xs text-muted-foreground">Score en cours : {score} / {questions.length}</p>
-    </section>
+    </div>
   );
 }

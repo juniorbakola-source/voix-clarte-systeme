@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Expand, Eye, MapPin, Minimize2, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { useEffect, useMemo, useState, ReactNode } from "react";
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Expand, Eye, MapPin, Minimize2, Move, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
 import { comexBriefing, dashboardViews, departments, elephantPuzzlePieces, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 import elephantHero from "@/assets/elephant-hero.png";
 import AppleKeynote from "@/components/voc/AppleKeynote";
 import QuizExcellence from "@/components/voc/QuizExcellence";
+import SortableSection from "@/components/voc/SortableSection";
+import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import sceneGlobal from "@/assets/elephant-scene1-global.jpg";
 import sceneFragmented from "@/assets/elephant-scene2-fragmented.jpg";
 import sceneDisappeared from "@/assets/elephant-scene3-disappeared.jpg";
@@ -185,12 +188,52 @@ export default function Module7ExcellenceOperationnelle() {
   const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
   const [takenPieces, setTakenPieces] = useState<number[]>([]);
   const [fullscreen, setFullscreen] = useState(false);
+  const [customizing, setCustomizing] = useState(false);
+  const defaultSectionOrder = [
+    "hero",
+    "keynote-ai",
+    "quiz",
+    "elephant",
+    "game",
+    "tools",
+    "dashboard",
+    "roadmap",
+    "comex",
+    "gamification",
+    "actions",
+  ];
+  const [sectionOrder, setSectionOrder] = useState<string[]>(defaultSectionOrder);
+  const sectionLabels: Record<string, string> = {
+    hero: "Slide principale",
+    "keynote-ai": "Keynote IA",
+    quiz: "Quiz interactif",
+    elephant: "Puzzle Éléphant",
+    game: "OE Game · Score",
+    tools: "8 outils OE",
+    dashboard: "Tableaux de bord",
+    roadmap: "Feuille de route",
+    comex: "Briefing COMEX",
+    gamification: "Gamification",
+    actions: "Actions immédiates",
+  };
   const slide = slides[current];
   const progress = ((current + 1) / slides.length) * 100;
   const score = useMemo(() => checked.reduce((sum, index) => sum + scoreRules[index].points, 0), [checked]);
   const dashboard = dashboardViews.find((view) => view.id === activeView) ?? dashboardViews[0];
   const phase = roadmapPhases[activePhase];
   const mode = gamificationModes.find((item) => item.id === activeMode) ?? gamificationModes[0];
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setSectionOrder((items) => {
+      const oldIndex = items.indexOf(String(active.id));
+      const newIndex = items.indexOf(String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return items;
+      return arrayMove(items, oldIndex, newIndex);
+    });
+  };
 
   const toggleRule = (index: number) => {
     setChecked((prev) => prev.includes(index) ? prev.filter((item) => item !== index) : [...prev, index]);
@@ -214,19 +257,10 @@ export default function Module7ExcellenceOperationnelle() {
     };
   }, [fullscreen]);
 
-  return (
-    <div className={fullscreen ? "fixed inset-0 z-[100] overflow-y-auto bg-background p-4 md:p-8 space-y-8" : "space-y-8"}>
-      <div className="flex items-center justify-end">
-        <button
-          onClick={() => setFullscreen((v) => !v)}
-          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
-          aria-label={fullscreen ? "Quitter le plein écran" : "Afficher en plein écran"}
-        >
-          {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
-          {fullscreen ? "Quitter plein écran" : "Plein écran"}
-        </button>
-      </div>
+  // Helpers — chaque section est définie comme nœud, puis ordonnée dynamiquement
+  const sectionNodes: Record<string, ReactNode> = {};
 
+  sectionNodes["hero"] = (
       <section className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--elka-black))] text-[hsl(var(--primary-foreground))] shadow-2xl">
         <div className="grid min-h-[620px] lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative flex flex-col justify-between p-6 md:p-10">
@@ -349,7 +383,9 @@ export default function Module7ExcellenceOperationnelle() {
           </aside>
         </div>
       </section>
+  );
 
+  sectionNodes["keynote-ai"] = (
       <section className="space-y-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Keynote IA · Style Apple</p>
@@ -360,8 +396,10 @@ export default function Module7ExcellenceOperationnelle() {
         </div>
         <AppleKeynote />
       </section>
+  );
 
       {/* Quiz Excellence Opérationnelle */}
+  sectionNodes["quiz"] = (
       <section className="rounded-lg border border-border bg-secondary/30 p-6 md:p-8">
         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--elka-red))]">Évaluation interactive</p>
         <h3 className="section-title mt-1 text-2xl">Testez vos acquis</h3>
@@ -370,8 +408,10 @@ export default function Module7ExcellenceOperationnelle() {
         </p>
         <QuizExcellence />
       </section>
+  );
 
       {/* Puzzle Éléphant — Industrie amortisseurs */}
+  sectionNodes["elephant"] = (
       <section className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-gradient-to-br from-[hsl(var(--elka-black))] to-[hsl(var(--elka-darkgray))] text-[hsl(var(--primary-foreground))] shadow-2xl">
         <div className="grid lg:grid-cols-[1fr_0.85fr]">
           {/* Visualisation éléphant + puzzle */}
@@ -495,7 +535,9 @@ export default function Module7ExcellenceOperationnelle() {
           </aside>
         </div>
       </section>
+  );
 
+  sectionNodes["game"] = (
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="consulting-card">
           <div className="mb-5 flex items-start justify-between gap-4">
@@ -560,8 +602,10 @@ export default function Module7ExcellenceOperationnelle() {
           </div>
         </div>
       </section>
+  );
 
       {/* Architecture OE — 8 outils interactifs */}
+  sectionNodes["tools"] = (
       <section className="consulting-card">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
@@ -596,8 +640,10 @@ export default function Module7ExcellenceOperationnelle() {
           })}
         </div>
       </section>
+  );
 
       {/* Dashboard SaaS — 4 vues */}
+  sectionNodes["dashboard"] = (
       <section className="consulting-card">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -637,8 +683,10 @@ export default function Module7ExcellenceOperationnelle() {
           </div>
         </div>
       </section>
+  );
 
       {/* Roadmap 4 phases */}
+  sectionNodes["roadmap"] = (
       <section className="consulting-card">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
@@ -675,8 +723,10 @@ export default function Module7ExcellenceOperationnelle() {
           </div>
         </div>
       </section>
+  );
 
       {/* Briefing COMEX */}
+  sectionNodes["comex"] = (
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="consulting-card">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Briefing COMEX</p>
@@ -713,8 +763,10 @@ export default function Module7ExcellenceOperationnelle() {
           </div>
         </div>
       </section>
+  );
 
       {/* Gamification interactive — QR / Kahoot / Puzzle / Scoring */}
+  sectionNodes["gamification"] = (
       <section className="consulting-card">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
@@ -742,8 +794,10 @@ export default function Module7ExcellenceOperationnelle() {
           <p className="text-lg text-foreground">{mode.desc}</p>
         </div>
       </section>
+  );
 
       {/* Call-to-action final enrichi */}
+  sectionNodes["actions"] = (
       <section className="consulting-card border-l-4 border-l-[hsl(var(--elka-red))]">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -774,6 +828,74 @@ export default function Module7ExcellenceOperationnelle() {
           })}
         </div>
       </section>
+  );
+
+  return (
+    <div
+      className={fullscreen ? "fixed inset-0 z-[100] overflow-y-auto bg-background p-4 md:p-8 space-y-8" : "space-y-8"}
+      data-customizing={customizing ? "true" : "false"}
+    >
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <button
+          onClick={() => setCustomizing((v) => !v)}
+          className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] transition ${customizing ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "border-[hsl(var(--border))] bg-card text-foreground hover:bg-secondary"}`}
+          aria-label={customizing ? "Terminer la personnalisation" : "Personnaliser la présentation"}
+        >
+          <Move className="h-4 w-4" />
+          {customizing ? "Terminer" : "Personnaliser"}
+        </button>
+        {customizing && (
+          <button
+            onClick={() => setSectionOrder(defaultSectionOrder)}
+            className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Réinitialiser l'ordre
+          </button>
+        )}
+        <button
+          onClick={() => setFullscreen((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
+          aria-label={fullscreen ? "Quitter le plein écran" : "Afficher en plein écran"}
+        >
+          {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+          {fullscreen ? "Quitter plein écran" : "Plein écran"}
+        </button>
+      </div>
+
+      {customizing && (
+        <div className="rounded-md border border-dashed border-[hsl(var(--elka-red))]/50 bg-[hsl(var(--elka-red))]/5 px-4 py-3 text-xs text-foreground">
+          <strong className="text-[hsl(var(--elka-red))]">Mode personnalisation actif.</strong> Glissez les cartes via la poignée pour réorganiser. Cliquez sur n'importe quel texte pour le modifier directement.
+        </div>
+      )}
+
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
+          <div
+            className="space-y-8"
+            onInput={(e) => {
+              // contentEditable inline edits — rester non-contrôlé
+              e.stopPropagation();
+            }}
+          >
+            {sectionOrder.map((id) => {
+              const node = sectionNodes[id];
+              if (!node) return null;
+              return (
+                <SortableSection key={id} id={id} customizing={customizing} label={sectionLabels[id]}>
+                  <div
+                    contentEditable={customizing}
+                    suppressContentEditableWarning
+                    className={customizing ? "outline-none focus-within:outline-none" : ""}
+                  >
+                    {node}
+                  </div>
+                </SortableSection>
+              );
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
