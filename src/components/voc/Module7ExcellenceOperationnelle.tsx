@@ -188,12 +188,52 @@ export default function Module7ExcellenceOperationnelle() {
   const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
   const [takenPieces, setTakenPieces] = useState<number[]>([]);
   const [fullscreen, setFullscreen] = useState(false);
+  const [customizing, setCustomizing] = useState(false);
+  const defaultSectionOrder = [
+    "hero",
+    "keynote-ai",
+    "quiz",
+    "elephant",
+    "dashboard",
+    "pillars",
+    "comex",
+    "tools",
+    "roadmap",
+    "gamification",
+    "actions",
+  ];
+  const [sectionOrder, setSectionOrder] = useState<string[]>(defaultSectionOrder);
+  const sectionLabels: Record<string, string> = {
+    hero: "Slide principale",
+    "keynote-ai": "Keynote IA",
+    quiz: "Quiz",
+    elephant: "Puzzle Éléphant",
+    dashboard: "Tableaux de bord",
+    pillars: "Piliers OE",
+    comex: "Briefing COMEX",
+    tools: "Outils OE",
+    roadmap: "Feuille de route",
+    gamification: "Gamification",
+    actions: "Actions immédiates",
+  };
   const slide = slides[current];
   const progress = ((current + 1) / slides.length) * 100;
   const score = useMemo(() => checked.reduce((sum, index) => sum + scoreRules[index].points, 0), [checked]);
   const dashboard = dashboardViews.find((view) => view.id === activeView) ?? dashboardViews[0];
   const phase = roadmapPhases[activePhase];
   const mode = gamificationModes.find((item) => item.id === activeMode) ?? gamificationModes[0];
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setSectionOrder((items) => {
+      const oldIndex = items.indexOf(String(active.id));
+      const newIndex = items.indexOf(String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return items;
+      return arrayMove(items, oldIndex, newIndex);
+    });
+  };
 
   const toggleRule = (index: number) => {
     setChecked((prev) => prev.includes(index) ? prev.filter((item) => item !== index) : [...prev, index]);
@@ -217,18 +257,8 @@ export default function Module7ExcellenceOperationnelle() {
     };
   }, [fullscreen]);
 
-  return (
-    <div className={fullscreen ? "fixed inset-0 z-[100] overflow-y-auto bg-background p-4 md:p-8 space-y-8" : "space-y-8"}>
-      <div className="flex items-center justify-end">
-        <button
-          onClick={() => setFullscreen((v) => !v)}
-          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
-          aria-label={fullscreen ? "Quitter le plein écran" : "Afficher en plein écran"}
-        >
-          {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
-          {fullscreen ? "Quitter plein écran" : "Plein écran"}
-        </button>
-      </div>
+  // Helpers — chaque section est définie comme nœud, puis ordonnée dynamiquement
+  const sectionNodes: Record<string, ReactNode> = {};
 
       <section className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--elka-black))] text-[hsl(var(--primary-foreground))] shadow-2xl">
         <div className="grid min-h-[620px] lg:grid-cols-[1.05fr_0.95fr]">
