@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Expand, Eye, Map
 import { comexBriefing, dashboardViews, departments, elephantPuzzlePieces, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 import elephantHero from "@/assets/elephant-hero.png";
 import AppleKeynote from "@/components/voc/AppleKeynote";
+import QuizExcellence from "@/components/voc/QuizExcellence";
 import sceneGlobal from "@/assets/elephant-scene1-global.jpg";
 import sceneFragmented from "@/assets/elephant-scene2-fragmented.jpg";
 import sceneDisappeared from "@/assets/elephant-scene3-disappeared.jpg";
@@ -358,6 +359,16 @@ export default function Module7ExcellenceOperationnelle() {
           </p>
         </div>
         <AppleKeynote />
+      </section>
+
+      {/* Quiz Excellence Opérationnelle */}
+      <section className="rounded-lg border border-border bg-secondary/30 p-6 md:p-8">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--elka-red))]">Évaluation interactive</p>
+        <h3 className="section-title mt-1 text-2xl">Testez vos acquis</h3>
+        <p className="mt-1 mb-5 text-sm text-muted-foreground">
+          Un court quiz pour ancrer les fondamentaux de l'excellence opérationnelle.
+        </p>
+        <QuizExcellence />
       </section>
 
       {/* Puzzle Éléphant — Industrie amortisseurs */}
