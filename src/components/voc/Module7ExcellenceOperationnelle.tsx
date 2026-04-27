@@ -537,7 +537,7 @@ export default function Module7ExcellenceOperationnelle() {
       </section>
   );
 
-  sectionNodes["dashboard"] = (
+  sectionNodes["game"] = (
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="consulting-card">
           <div className="mb-5 flex items-start justify-between gap-4">
@@ -602,8 +602,10 @@ export default function Module7ExcellenceOperationnelle() {
           </div>
         </div>
       </section>
+  );
 
       {/* Architecture OE — 8 outils interactifs */}
+  sectionNodes["tools"] = (
       <section className="consulting-card">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
@@ -638,8 +640,10 @@ export default function Module7ExcellenceOperationnelle() {
           })}
         </div>
       </section>
+  );
 
       {/* Dashboard SaaS — 4 vues */}
+  sectionNodes["dashboard"] = (
       <section className="consulting-card">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -679,8 +683,10 @@ export default function Module7ExcellenceOperationnelle() {
           </div>
         </div>
       </section>
+  );
 
       {/* Roadmap 4 phases */}
+  sectionNodes["roadmap"] = (
       <section className="consulting-card">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
@@ -717,8 +723,10 @@ export default function Module7ExcellenceOperationnelle() {
           </div>
         </div>
       </section>
+  );
 
       {/* Briefing COMEX */}
+  sectionNodes["comex"] = (
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="consulting-card">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Briefing COMEX</p>
@@ -755,8 +763,10 @@ export default function Module7ExcellenceOperationnelle() {
           </div>
         </div>
       </section>
+  );
 
       {/* Gamification interactive — QR / Kahoot / Puzzle / Scoring */}
+  sectionNodes["gamification"] = (
       <section className="consulting-card">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
@@ -784,8 +794,10 @@ export default function Module7ExcellenceOperationnelle() {
           <p className="text-lg text-foreground">{mode.desc}</p>
         </div>
       </section>
+  );
 
       {/* Call-to-action final enrichi */}
+  sectionNodes["actions"] = (
       <section className="consulting-card border-l-4 border-l-[hsl(var(--elka-red))]">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
