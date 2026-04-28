@@ -290,7 +290,7 @@ export default function Module7ExcellenceOperationnelle() {
       } catch {}
     }, 500);
     return () => window.clearTimeout(id);
-  }, [current, checked, audiencePulse, activeView, activePhase, comexAnswered, activeMode, actionsTaken, slides, takenPieces, sectionOrder]);
+  }, [current, checked, audiencePulse, activeView, activePhase, comexAnswered, activeMode, actionsTaken, slides, takenPieces, sectionOrder, viewMode]);
 
   // Restaurer les éditions inline (contentEditable) après render
   useEffect(() => {
