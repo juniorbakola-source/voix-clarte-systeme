@@ -282,7 +282,7 @@ export default function Module7ExcellenceOperationnelle() {
       try {
         const payload = {
           current, checked, audiencePulse, activeView, activePhase,
-          comexAnswered, activeMode, actionsTaken, slides, takenPieces,
+          comexAnswered, activeMode, actionsTaken, slides, takenPieces, viewMode,
           sectionOrder, savedAt: Date.now(),
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
