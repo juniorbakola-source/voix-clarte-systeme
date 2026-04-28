@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, ReactNode } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Expand, Eye, MapPin, Minimize2, Move, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, ReactNode } from "react";
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Expand, Eye, MapPin, Minimize2, Move, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Save, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { comexBriefing, dashboardViews, departments, elephantPuzzlePieces, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 import elephantHero from "@/assets/elephant-hero.png";
 import AppleKeynote from "@/components/voc/AppleKeynote";
@@ -175,20 +176,8 @@ function DynamicSlideVisual({ slide, progress }: { slide: EditableSlide; progres
 }
 
 export default function Module7ExcellenceOperationnelle() {
-  const [current, setCurrent] = useState(0);
-  const [checked, setChecked] = useState<number[]>([0, 1]);
-  const [editMode, setEditMode] = useState(false);
-  const [audiencePulse, setAudiencePulse] = useState(68);
-  const [activeView, setActiveView] = useState<string>(dashboardViews[0].id);
-  const [activePhase, setActivePhase] = useState(0);
-  const [activeTool, setActiveTool] = useState<number | null>(null);
-  const [comexAnswered, setComexAnswered] = useState<number[]>([]);
-  const [activeMode, setActiveMode] = useState<string>(gamificationModes[0].id);
-  const [actionsTaken, setActionsTaken] = useState<number[]>([]);
-  const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
-  const [takenPieces, setTakenPieces] = useState<number[]>([]);
-  const [fullscreen, setFullscreen] = useState(false);
-  const [customizing, setCustomizing] = useState(false);
+  const STORAGE_KEY = "module7-state-v1";
+  const EDITS_KEY = "module7-inline-edits-v1";
   const defaultSectionOrder = [
     "hero",
     "keynote-ai",
@@ -202,7 +191,35 @@ export default function Module7ExcellenceOperationnelle() {
     "gamification",
     "actions",
   ];
-  const [sectionOrder, setSectionOrder] = useState<string[]>(defaultSectionOrder);
+
+  // Charger l'état persisté au démarrage
+  const persisted = (() => {
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
+  const [current, setCurrent] = useState<number>(persisted?.current ?? 0);
+  const [checked, setChecked] = useState<number[]>(persisted?.checked ?? [0, 1]);
+  const [editMode, setEditMode] = useState(false);
+  const [audiencePulse, setAudiencePulse] = useState<number>(persisted?.audiencePulse ?? 68);
+  const [activeView, setActiveView] = useState<string>(persisted?.activeView ?? dashboardViews[0].id);
+  const [activePhase, setActivePhase] = useState<number>(persisted?.activePhase ?? 0);
+  const [activeTool, setActiveTool] = useState<number | null>(null);
+  const [comexAnswered, setComexAnswered] = useState<number[]>(persisted?.comexAnswered ?? []);
+  const [activeMode, setActiveMode] = useState<string>(persisted?.activeMode ?? gamificationModes[0].id);
+  const [actionsTaken, setActionsTaken] = useState<number[]>(persisted?.actionsTaken ?? []);
+  const [slides, setSlides] = useState<EditableSlide[]>(() => {
+    if (persisted?.slides && Array.isArray(persisted.slides)) return persisted.slides;
+    return oeSlides.map((slide) => ({ ...slide }));
+  });
+  const [takenPieces, setTakenPieces] = useState<number[]>(persisted?.takenPieces ?? []);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [customizing, setCustomizing] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState<string[]>(persisted?.sectionOrder ?? defaultSectionOrder);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(persisted?.savedAt ?? null);
+  const editableRootRef = useRef<HTMLDivElement | null>(null);
   const sectionLabels: Record<string, string> = {
     hero: "Slide principale",
     "keynote-ai": "Keynote IA",
@@ -256,6 +273,86 @@ export default function Module7ExcellenceOperationnelle() {
       window.removeEventListener("keydown", onKey);
     };
   }, [fullscreen]);
+
+  // Sauvegarde automatique (debounced) de tout l'état du module
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      try {
+        const payload = {
+          current, checked, audiencePulse, activeView, activePhase,
+          comexAnswered, activeMode, actionsTaken, slides, takenPieces,
+          sectionOrder, savedAt: Date.now(),
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        setLastSavedAt(payload.savedAt);
+      } catch {}
+    }, 500);
+    return () => window.clearTimeout(id);
+  }, [current, checked, audiencePulse, activeView, activePhase, comexAnswered, activeMode, actionsTaken, slides, takenPieces, sectionOrder]);
+
+  // Restaurer les éditions inline (contentEditable) après render
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(EDITS_KEY);
+      if (!raw) return;
+      const edits: Record<string, string> = JSON.parse(raw);
+      requestAnimationFrame(() => {
+        if (!editableRootRef.current) return;
+        editableRootRef.current.querySelectorAll<HTMLElement>("[data-section-id]").forEach((el) => {
+          const id = el.getAttribute("data-section-id");
+          if (id && edits[id]) el.innerHTML = edits[id];
+        });
+      });
+    } catch {}
+  }, [sectionOrder]);
+
+  const saveInlineEdits = () => {
+    try {
+      const edits: Record<string, string> = {};
+      editableRootRef.current?.querySelectorAll<HTMLElement>("[data-section-id]").forEach((el) => {
+        const id = el.getAttribute("data-section-id");
+        if (id) edits[id] = el.innerHTML;
+      });
+      localStorage.setItem(EDITS_KEY, JSON.stringify(edits));
+    } catch {}
+  };
+
+  const handleManualSave = () => {
+    saveInlineEdits();
+    try {
+      const payload = {
+        current, checked, audiencePulse, activeView, activePhase,
+        comexAnswered, activeMode, actionsTaken, slides, takenPieces,
+        sectionOrder, savedAt: Date.now(),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      setLastSavedAt(payload.savedAt);
+      toast({ title: "Modifications sauvegardées", description: "Vos personnalisations sont conservées localement." });
+    } catch {
+      toast({ title: "Échec de la sauvegarde", description: "Impossible d'écrire dans le stockage local.", variant: "destructive" });
+    }
+  };
+
+  const handleResetAll = () => {
+    if (!confirm("Réinitialiser toutes les modifications du Module 7 ?")) return;
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(EDITS_KEY);
+    } catch {}
+    setSectionOrder(defaultSectionOrder);
+    setSlides(oeSlides.map((s) => ({ ...s })));
+    setChecked([0, 1]);
+    setAudiencePulse(68);
+    setActiveView(dashboardViews[0].id);
+    setActivePhase(0);
+    setComexAnswered([]);
+    setActiveMode(gamificationModes[0].id);
+    setActionsTaken([]);
+    setTakenPieces([]);
+    setCurrent(0);
+    setLastSavedAt(null);
+    toast({ title: "Module réinitialisé", description: "Toutes les personnalisations ont été effacées." });
+  };
 
   // Helpers — chaque section est définie comme nœud, puis ordonnée dynamiquement
   const sectionNodes: Record<string, ReactNode> = {};
@@ -836,13 +933,29 @@ export default function Module7ExcellenceOperationnelle() {
       data-customizing={customizing ? "true" : "false"}
     >
       <div className="flex flex-wrap items-center justify-end gap-2">
+        {lastSavedAt && (
+          <span className="mr-auto text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+            Sauvegardé · {new Date(lastSavedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+          </span>
+        )}
         <button
-          onClick={() => setCustomizing((v) => !v)}
+          onClick={() => {
+            if (customizing) saveInlineEdits();
+            setCustomizing((v) => !v);
+          }}
           className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] transition ${customizing ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "border-[hsl(var(--border))] bg-card text-foreground hover:bg-secondary"}`}
           aria-label={customizing ? "Terminer la personnalisation" : "Personnaliser la présentation"}
         >
           <Move className="h-4 w-4" />
           {customizing ? "Terminer" : "Personnaliser"}
+        </button>
+        <button
+          onClick={handleManualSave}
+          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))] px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--accent-foreground))] transition hover:opacity-90"
+          aria-label="Sauvegarder les modifications"
+        >
+          <Save className="h-4 w-4" />
+          Sauvegarder
         </button>
         {customizing && (
           <button
@@ -853,6 +966,14 @@ export default function Module7ExcellenceOperationnelle() {
             Réinitialiser l'ordre
           </button>
         )}
+        <button
+          onClick={handleResetAll}
+          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
+          aria-label="Réinitialiser toutes les modifications"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Tout réinitialiser
+        </button>
         <button
           onClick={() => setFullscreen((v) => !v)}
           className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
@@ -865,27 +986,23 @@ export default function Module7ExcellenceOperationnelle() {
 
       {customizing && (
         <div className="rounded-md border border-dashed border-[hsl(var(--elka-red))]/50 bg-[hsl(var(--elka-red))]/5 px-4 py-3 text-xs text-foreground">
-          <strong className="text-[hsl(var(--elka-red))]">Mode personnalisation actif.</strong> Glissez les cartes via la poignée pour réorganiser. Cliquez sur n'importe quel texte pour le modifier directement.
+          <strong className="text-[hsl(var(--elka-red))]">Mode personnalisation actif.</strong> Glissez les cartes via la poignée pour réorganiser. Cliquez sur n'importe quel texte pour le modifier directement. Vos changements sont sauvegardés automatiquement.
         </div>
       )}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
-          <div
-            className="space-y-8"
-            onInput={(e) => {
-              // contentEditable inline edits — rester non-contrôlé
-              e.stopPropagation();
-            }}
-          >
+          <div ref={editableRootRef} className="space-y-8">
             {sectionOrder.map((id) => {
               const node = sectionNodes[id];
               if (!node) return null;
               return (
                 <SortableSection key={id} id={id} customizing={customizing} label={sectionLabels[id]}>
                   <div
+                    data-section-id={id}
                     contentEditable={customizing}
                     suppressContentEditableWarning
+                    onBlur={customizing ? saveInlineEdits : undefined}
                     className={customizing ? "outline-none focus-within:outline-none" : ""}
                   >
                     {node}
