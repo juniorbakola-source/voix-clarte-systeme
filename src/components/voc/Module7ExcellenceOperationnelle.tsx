@@ -934,9 +934,23 @@ export default function Module7ExcellenceOperationnelle() {
       className={fullscreen ? "fixed inset-0 z-[100] overflow-y-auto bg-background p-4 md:p-8 space-y-8" : "space-y-8"}
       data-customizing={customizing ? "true" : "false"}
     >
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="mr-auto inline-flex rounded-md border border-border bg-card p-1">
+          <button
+            onClick={() => setViewMode("kickoff")}
+            className={`rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${viewMode === "kickoff" ? "bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Parcours Kick-off
+          </button>
+          <button
+            onClick={() => setViewMode("libre")}
+            className={`rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${viewMode === "libre" ? "bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Présentation libre
+          </button>
+        </div>
         {lastSavedAt && (
-          <span className="mr-auto text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
             Sauvegardé · {new Date(lastSavedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
           </span>
         )}
