@@ -220,6 +220,7 @@ export default function Module7ExcellenceOperationnelle() {
   const [customizing, setCustomizing] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<string[]>(persisted?.sectionOrder ?? defaultSectionOrder);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(persisted?.savedAt ?? null);
+  const [viewMode, setViewMode] = useState<"libre" | "kickoff">(persisted?.viewMode ?? "kickoff");
   const editableRootRef = useRef<HTMLDivElement | null>(null);
   const sectionLabels: Record<string, string> = {
     hero: "Slide principale",
