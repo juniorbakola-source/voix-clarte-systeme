@@ -933,13 +933,29 @@ export default function Module7ExcellenceOperationnelle() {
       data-customizing={customizing ? "true" : "false"}
     >
       <div className="flex flex-wrap items-center justify-end gap-2">
+        {lastSavedAt && (
+          <span className="mr-auto text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+            Sauvegardé · {new Date(lastSavedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+          </span>
+        )}
         <button
-          onClick={() => setCustomizing((v) => !v)}
+          onClick={() => {
+            if (customizing) saveInlineEdits();
+            setCustomizing((v) => !v);
+          }}
           className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] transition ${customizing ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "border-[hsl(var(--border))] bg-card text-foreground hover:bg-secondary"}`}
           aria-label={customizing ? "Terminer la personnalisation" : "Personnaliser la présentation"}
         >
           <Move className="h-4 w-4" />
           {customizing ? "Terminer" : "Personnaliser"}
+        </button>
+        <button
+          onClick={handleManualSave}
+          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))] px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--accent-foreground))] transition hover:opacity-90"
+          aria-label="Sauvegarder les modifications"
+        >
+          <Save className="h-4 w-4" />
+          Sauvegarder
         </button>
         {customizing && (
           <button
@@ -950,6 +966,14 @@ export default function Module7ExcellenceOperationnelle() {
             Réinitialiser l'ordre
           </button>
         )}
+        <button
+          onClick={handleResetAll}
+          className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
+          aria-label="Réinitialiser toutes les modifications"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Tout réinitialiser
+        </button>
         <button
           onClick={() => setFullscreen((v) => !v)}
           className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition hover:bg-secondary"
@@ -962,27 +986,23 @@ export default function Module7ExcellenceOperationnelle() {
 
       {customizing && (
         <div className="rounded-md border border-dashed border-[hsl(var(--elka-red))]/50 bg-[hsl(var(--elka-red))]/5 px-4 py-3 text-xs text-foreground">
-          <strong className="text-[hsl(var(--elka-red))]">Mode personnalisation actif.</strong> Glissez les cartes via la poignée pour réorganiser. Cliquez sur n'importe quel texte pour le modifier directement.
+          <strong className="text-[hsl(var(--elka-red))]">Mode personnalisation actif.</strong> Glissez les cartes via la poignée pour réorganiser. Cliquez sur n'importe quel texte pour le modifier directement. Vos changements sont sauvegardés automatiquement.
         </div>
       )}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
-          <div
-            className="space-y-8"
-            onInput={(e) => {
-              // contentEditable inline edits — rester non-contrôlé
-              e.stopPropagation();
-            }}
-          >
+          <div ref={editableRootRef} className="space-y-8">
             {sectionOrder.map((id) => {
               const node = sectionNodes[id];
               if (!node) return null;
               return (
                 <SortableSection key={id} id={id} customizing={customizing} label={sectionLabels[id]}>
                   <div
+                    data-section-id={id}
                     contentEditable={customizing}
                     suppressContentEditableWarning
+                    onBlur={customizing ? saveInlineEdits : undefined}
                     className={customizing ? "outline-none focus-within:outline-none" : ""}
                   >
                     {node}
