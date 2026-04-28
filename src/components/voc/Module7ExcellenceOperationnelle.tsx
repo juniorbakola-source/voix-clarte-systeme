@@ -6,6 +6,7 @@ import elephantHero from "@/assets/elephant-hero.png";
 import AppleKeynote from "@/components/voc/AppleKeynote";
 import QuizExcellence from "@/components/voc/QuizExcellence";
 import SortableSection from "@/components/voc/SortableSection";
+import KickoffJourney from "@/components/voc/KickoffJourney";
 import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import sceneGlobal from "@/assets/elephant-scene1-global.jpg";
@@ -219,6 +220,7 @@ export default function Module7ExcellenceOperationnelle() {
   const [customizing, setCustomizing] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<string[]>(persisted?.sectionOrder ?? defaultSectionOrder);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(persisted?.savedAt ?? null);
+  const [viewMode, setViewMode] = useState<"libre" | "kickoff">(persisted?.viewMode ?? "kickoff");
   const editableRootRef = useRef<HTMLDivElement | null>(null);
   const sectionLabels: Record<string, string> = {
     hero: "Slide principale",
@@ -280,7 +282,7 @@ export default function Module7ExcellenceOperationnelle() {
       try {
         const payload = {
           current, checked, audiencePulse, activeView, activePhase,
-          comexAnswered, activeMode, actionsTaken, slides, takenPieces,
+          comexAnswered, activeMode, actionsTaken, slides, takenPieces, viewMode,
           sectionOrder, savedAt: Date.now(),
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -288,7 +290,7 @@ export default function Module7ExcellenceOperationnelle() {
       } catch {}
     }, 500);
     return () => window.clearTimeout(id);
-  }, [current, checked, audiencePulse, activeView, activePhase, comexAnswered, activeMode, actionsTaken, slides, takenPieces, sectionOrder]);
+  }, [current, checked, audiencePulse, activeView, activePhase, comexAnswered, activeMode, actionsTaken, slides, takenPieces, sectionOrder, viewMode]);
 
   // Restaurer les éditions inline (contentEditable) après render
   useEffect(() => {
@@ -322,7 +324,7 @@ export default function Module7ExcellenceOperationnelle() {
     try {
       const payload = {
         current, checked, audiencePulse, activeView, activePhase,
-        comexAnswered, activeMode, actionsTaken, slides, takenPieces,
+        comexAnswered, activeMode, actionsTaken, slides, takenPieces, viewMode,
         sectionOrder, savedAt: Date.now(),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -932,9 +934,23 @@ export default function Module7ExcellenceOperationnelle() {
       className={fullscreen ? "fixed inset-0 z-[100] overflow-y-auto bg-background p-4 md:p-8 space-y-8" : "space-y-8"}
       data-customizing={customizing ? "true" : "false"}
     >
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="mr-auto inline-flex rounded-md border border-border bg-card p-1">
+          <button
+            onClick={() => setViewMode("kickoff")}
+            className={`rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${viewMode === "kickoff" ? "bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Parcours Kick-off
+          </button>
+          <button
+            onClick={() => setViewMode("libre")}
+            className={`rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] transition ${viewMode === "libre" ? "bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Présentation libre
+          </button>
+        </div>
         {lastSavedAt && (
-          <span className="mr-auto text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
             Sauvegardé · {new Date(lastSavedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
           </span>
         )}
@@ -990,29 +1006,33 @@ export default function Module7ExcellenceOperationnelle() {
         </div>
       )}
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
-          <div ref={editableRootRef} className="space-y-8">
-            {sectionOrder.map((id) => {
-              const node = sectionNodes[id];
-              if (!node) return null;
-              return (
-                <SortableSection key={id} id={id} customizing={customizing} label={sectionLabels[id]}>
-                  <div
-                    data-section-id={id}
-                    contentEditable={customizing}
-                    suppressContentEditableWarning
-                    onBlur={customizing ? saveInlineEdits : undefined}
-                    className={customizing ? "outline-none focus-within:outline-none" : ""}
-                  >
-                    {node}
-                  </div>
-                </SortableSection>
-              );
-            })}
-          </div>
-        </SortableContext>
-      </DndContext>
+      {viewMode === "kickoff" ? (
+        <KickoffJourney />
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
+            <div ref={editableRootRef} className="space-y-8">
+              {sectionOrder.map((id) => {
+                const node = sectionNodes[id];
+                if (!node) return null;
+                return (
+                  <SortableSection key={id} id={id} customizing={customizing} label={sectionLabels[id]}>
+                    <div
+                      data-section-id={id}
+                      contentEditable={customizing}
+                      suppressContentEditableWarning
+                      onBlur={customizing ? saveInlineEdits : undefined}
+                      className={customizing ? "outline-none focus-within:outline-none" : ""}
+                    >
+                      {node}
+                    </div>
+                  </SortableSection>
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
     </div>
   );
 }
