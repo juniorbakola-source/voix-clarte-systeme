@@ -176,20 +176,8 @@ function DynamicSlideVisual({ slide, progress }: { slide: EditableSlide; progres
 }
 
 export default function Module7ExcellenceOperationnelle() {
-  const [current, setCurrent] = useState(0);
-  const [checked, setChecked] = useState<number[]>([0, 1]);
-  const [editMode, setEditMode] = useState(false);
-  const [audiencePulse, setAudiencePulse] = useState(68);
-  const [activeView, setActiveView] = useState<string>(dashboardViews[0].id);
-  const [activePhase, setActivePhase] = useState(0);
-  const [activeTool, setActiveTool] = useState<number | null>(null);
-  const [comexAnswered, setComexAnswered] = useState<number[]>([]);
-  const [activeMode, setActiveMode] = useState<string>(gamificationModes[0].id);
-  const [actionsTaken, setActionsTaken] = useState<number[]>([]);
-  const [slides, setSlides] = useState<EditableSlide[]>(() => oeSlides.map((slide) => ({ ...slide })));
-  const [takenPieces, setTakenPieces] = useState<number[]>([]);
-  const [fullscreen, setFullscreen] = useState(false);
-  const [customizing, setCustomizing] = useState(false);
+  const STORAGE_KEY = "module7-state-v1";
+  const EDITS_KEY = "module7-inline-edits-v1";
   const defaultSectionOrder = [
     "hero",
     "keynote-ai",
@@ -203,7 +191,35 @@ export default function Module7ExcellenceOperationnelle() {
     "gamification",
     "actions",
   ];
-  const [sectionOrder, setSectionOrder] = useState<string[]>(defaultSectionOrder);
+
+  // Charger l'état persisté au démarrage
+  const persisted = (() => {
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
+  const [current, setCurrent] = useState<number>(persisted?.current ?? 0);
+  const [checked, setChecked] = useState<number[]>(persisted?.checked ?? [0, 1]);
+  const [editMode, setEditMode] = useState(false);
+  const [audiencePulse, setAudiencePulse] = useState<number>(persisted?.audiencePulse ?? 68);
+  const [activeView, setActiveView] = useState<string>(persisted?.activeView ?? dashboardViews[0].id);
+  const [activePhase, setActivePhase] = useState<number>(persisted?.activePhase ?? 0);
+  const [activeTool, setActiveTool] = useState<number | null>(null);
+  const [comexAnswered, setComexAnswered] = useState<number[]>(persisted?.comexAnswered ?? []);
+  const [activeMode, setActiveMode] = useState<string>(persisted?.activeMode ?? gamificationModes[0].id);
+  const [actionsTaken, setActionsTaken] = useState<number[]>(persisted?.actionsTaken ?? []);
+  const [slides, setSlides] = useState<EditableSlide[]>(() => {
+    if (persisted?.slides && Array.isArray(persisted.slides)) return persisted.slides;
+    return oeSlides.map((slide) => ({ ...slide }));
+  });
+  const [takenPieces, setTakenPieces] = useState<number[]>(persisted?.takenPieces ?? []);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [customizing, setCustomizing] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState<string[]>(persisted?.sectionOrder ?? defaultSectionOrder);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(persisted?.savedAt ?? null);
+  const editableRootRef = useRef<HTMLDivElement | null>(null);
   const sectionLabels: Record<string, string> = {
     hero: "Slide principale",
     "keynote-ai": "Keynote IA",
