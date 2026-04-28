@@ -6,6 +6,7 @@ import elephantHero from "@/assets/elephant-hero.png";
 import AppleKeynote from "@/components/voc/AppleKeynote";
 import QuizExcellence from "@/components/voc/QuizExcellence";
 import SortableSection from "@/components/voc/SortableSection";
+import KickoffJourney from "@/components/voc/KickoffJourney";
 import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import sceneGlobal from "@/assets/elephant-scene1-global.jpg";
