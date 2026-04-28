@@ -274,6 +274,86 @@ export default function Module7ExcellenceOperationnelle() {
     };
   }, [fullscreen]);
 
+  // Sauvegarde automatique (debounced) de tout l'état du module
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      try {
+        const payload = {
+          current, checked, audiencePulse, activeView, activePhase,
+          comexAnswered, activeMode, actionsTaken, slides, takenPieces,
+          sectionOrder, savedAt: Date.now(),
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        setLastSavedAt(payload.savedAt);
+      } catch {}
+    }, 500);
+    return () => window.clearTimeout(id);
+  }, [current, checked, audiencePulse, activeView, activePhase, comexAnswered, activeMode, actionsTaken, slides, takenPieces, sectionOrder]);
+
+  // Restaurer les éditions inline (contentEditable) après render
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(EDITS_KEY);
+      if (!raw) return;
+      const edits: Record<string, string> = JSON.parse(raw);
+      requestAnimationFrame(() => {
+        if (!editableRootRef.current) return;
+        editableRootRef.current.querySelectorAll<HTMLElement>("[data-section-id]").forEach((el) => {
+          const id = el.getAttribute("data-section-id");
+          if (id && edits[id]) el.innerHTML = edits[id];
+        });
+      });
+    } catch {}
+  }, [sectionOrder]);
+
+  const saveInlineEdits = () => {
+    try {
+      const edits: Record<string, string> = {};
+      editableRootRef.current?.querySelectorAll<HTMLElement>("[data-section-id]").forEach((el) => {
+        const id = el.getAttribute("data-section-id");
+        if (id) edits[id] = el.innerHTML;
+      });
+      localStorage.setItem(EDITS_KEY, JSON.stringify(edits));
+    } catch {}
+  };
+
+  const handleManualSave = () => {
+    saveInlineEdits();
+    try {
+      const payload = {
+        current, checked, audiencePulse, activeView, activePhase,
+        comexAnswered, activeMode, actionsTaken, slides, takenPieces,
+        sectionOrder, savedAt: Date.now(),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      setLastSavedAt(payload.savedAt);
+      toast({ title: "Modifications sauvegardées", description: "Vos personnalisations sont conservées localement." });
+    } catch {
+      toast({ title: "Échec de la sauvegarde", description: "Impossible d'écrire dans le stockage local.", variant: "destructive" });
+    }
+  };
+
+  const handleResetAll = () => {
+    if (!confirm("Réinitialiser toutes les modifications du Module 7 ?")) return;
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(EDITS_KEY);
+    } catch {}
+    setSectionOrder(defaultSectionOrder);
+    setSlides(oeSlides.map((s) => ({ ...s })));
+    setChecked([0, 1]);
+    setAudiencePulse(68);
+    setActiveView(dashboardViews[0].id);
+    setActivePhase(0);
+    setComexAnswered([]);
+    setActiveMode(gamificationModes[0].id);
+    setActionsTaken([]);
+    setTakenPieces([]);
+    setCurrent(0);
+    setLastSavedAt(null);
+    toast({ title: "Module réinitialisé", description: "Toutes les personnalisations ont été effacées." });
+  };
+
   // Helpers — chaque section est définie comme nœud, puis ordonnée dynamiquement
   const sectionNodes: Record<string, ReactNode> = {};
 
