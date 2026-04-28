@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, ReactNode } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Expand, Eye, MapPin, Minimize2, Move, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, ReactNode } from "react";
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Edit3, Expand, Eye, MapPin, Minimize2, Move, Pause, Play, PlayCircle, Puzzle as PuzzleIcon, RotateCcw, Save, Settings, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { comexBriefing, dashboardViews, departments, elephantPuzzlePieces, gameLevels, gamificationModes, immediateActions, oePillars, oeSlides, oeTools, roadmapPhases, scoreboardTeams, scoreRules, totalTeamScore } from "@/data/operationalExcellenceData";
 import elephantHero from "@/assets/elephant-hero.png";
 import AppleKeynote from "@/components/voc/AppleKeynote";
