@@ -1006,29 +1006,33 @@ export default function Module7ExcellenceOperationnelle() {
         </div>
       )}
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
-          <div ref={editableRootRef} className="space-y-8">
-            {sectionOrder.map((id) => {
-              const node = sectionNodes[id];
-              if (!node) return null;
-              return (
-                <SortableSection key={id} id={id} customizing={customizing} label={sectionLabels[id]}>
-                  <div
-                    data-section-id={id}
-                    contentEditable={customizing}
-                    suppressContentEditableWarning
-                    onBlur={customizing ? saveInlineEdits : undefined}
-                    className={customizing ? "outline-none focus-within:outline-none" : ""}
-                  >
-                    {node}
-                  </div>
-                </SortableSection>
-              );
-            })}
-          </div>
-        </SortableContext>
-      </DndContext>
+      {viewMode === "kickoff" ? (
+        <KickoffJourney />
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
+            <div ref={editableRootRef} className="space-y-8">
+              {sectionOrder.map((id) => {
+                const node = sectionNodes[id];
+                if (!node) return null;
+                return (
+                  <SortableSection key={id} id={id} customizing={customizing} label={sectionLabels[id]}>
+                    <div
+                      data-section-id={id}
+                      contentEditable={customizing}
+                      suppressContentEditableWarning
+                      onBlur={customizing ? saveInlineEdits : undefined}
+                      className={customizing ? "outline-none focus-within:outline-none" : ""}
+                    >
+                      {node}
+                    </div>
+                  </SortableSection>
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
     </div>
   );
 }
