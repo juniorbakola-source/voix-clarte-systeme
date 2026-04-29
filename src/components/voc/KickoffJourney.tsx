@@ -169,7 +169,7 @@ function ActeIntentions() {
 
 /* ---------- Acte 4 : BÉNÉFICES (calculateur ROI) ---------- */
 function ActeBenefices() {
-  const [ca, setCa] = useState(50);    // M€
+  const [ca, setCa] = useState(50);    // M$
   const [copq, setCopq] = useState(8); // % CA
   const gainCopq = ((ca * copq) / 100) * 0.3;
   const soft = [
@@ -183,13 +183,13 @@ function ActeBenefices() {
       <div className="rounded-lg border border-border bg-card p-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Hard savings — simulateur</p>
         <h4 className="mt-1 text-lg font-bold">Quel gain réaliste sur 12 mois ?</h4>
-        <label className="mt-4 block text-xs font-semibold">Chiffre d'affaires (M€) : <span className="text-[hsl(var(--elka-red))]">{ca}</span></label>
+        <label className="mt-4 block text-xs font-semibold">Chiffre d'affaires (M$) : <span className="text-[hsl(var(--elka-red))]">{ca}</span></label>
         <input type="range" min={5} max={300} value={ca} onChange={(e) => setCa(+e.target.value)} className="w-full accent-[hsl(var(--elka-red))]" />
         <label className="mt-3 block text-xs font-semibold">COPQ estimé (% CA) : <span className="text-[hsl(var(--elka-red))]">{copq}%</span></label>
         <input type="range" min={2} max={20} value={copq} onChange={(e) => setCopq(+e.target.value)} className="w-full accent-[hsl(var(--elka-red))]" />
         <div className="mt-5 rounded-md bg-[hsl(var(--elka-black))] p-4 text-[hsl(var(--primary-foreground))]">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--elka-red))]">Gain potentiel (-30% COPQ)</p>
-          <p className="mt-1 text-3xl font-black">{gainCopq.toFixed(1)} M€ / an</p>
+          <p className="mt-1 text-3xl font-black">{gainCopq.toFixed(1)} M$ / an</p>
           <p className="mt-1 text-xs text-[hsl(var(--primary-foreground))]/65">Hypothèse cible programme : Qualité -30%, OEE +15%, WIP -20%, Lead Time -25%.</p>
         </div>
       </div>
