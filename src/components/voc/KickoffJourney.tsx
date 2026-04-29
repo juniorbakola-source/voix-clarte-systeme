@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, ArrowRight, CheckCircle2, Compass, Factory, Flame, Gauge,
-  HeartHandshake, Layers, Lightbulb, Map as MapIcon, Rocket, Settings2,
+  HeartHandshake, Layers, Lightbulb, Map as MapIcon, Pencil, RotateCcw, Rocket, Save, Settings2,
   ShieldCheck, Sparkles, Target, TrendingUp, Users, Wrench,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import QuizExcellence from "@/components/voc/QuizExcellence";
+
+const STORAGE_KEY = "kickoff-journey-edits-v1";
 
 /* =========================================================================
    KickoffJourney — 9 actes guidés alignés sur le PPT « Kick-off OE »
@@ -169,7 +171,7 @@ function ActeIntentions() {
 
 /* ---------- Acte 4 : BÉNÉFICES (calculateur ROI) ---------- */
 function ActeBenefices() {
-  const [ca, setCa] = useState(50);    // M€
+  const [ca, setCa] = useState(50);    // M$
   const [copq, setCopq] = useState(8); // % CA
   const gainCopq = ((ca * copq) / 100) * 0.3;
   const soft = [
@@ -183,13 +185,13 @@ function ActeBenefices() {
       <div className="rounded-lg border border-border bg-card p-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[hsl(var(--elka-red))]">Hard savings — simulateur</p>
         <h4 className="mt-1 text-lg font-bold">Quel gain réaliste sur 12 mois ?</h4>
-        <label className="mt-4 block text-xs font-semibold">Chiffre d'affaires (M€) : <span className="text-[hsl(var(--elka-red))]">{ca}</span></label>
+        <label className="mt-4 block text-xs font-semibold">Chiffre d'affaires (M$) : <span className="text-[hsl(var(--elka-red))]">{ca}</span></label>
         <input type="range" min={5} max={300} value={ca} onChange={(e) => setCa(+e.target.value)} className="w-full accent-[hsl(var(--elka-red))]" />
         <label className="mt-3 block text-xs font-semibold">COPQ estimé (% CA) : <span className="text-[hsl(var(--elka-red))]">{copq}%</span></label>
         <input type="range" min={2} max={20} value={copq} onChange={(e) => setCopq(+e.target.value)} className="w-full accent-[hsl(var(--elka-red))]" />
         <div className="mt-5 rounded-md bg-[hsl(var(--elka-black))] p-4 text-[hsl(var(--primary-foreground))]">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--elka-red))]">Gain potentiel (-30% COPQ)</p>
-          <p className="mt-1 text-3xl font-black">{gainCopq.toFixed(1)} M€ / an</p>
+          <p className="mt-1 text-3xl font-black">{gainCopq.toFixed(1)} M$ / an</p>
           <p className="mt-1 text-xs text-[hsl(var(--primary-foreground))]/65">Hypothèse cible programme : Qualité -30%, OEE +15%, WIP -20%, Lead Time -25%.</p>
         </div>
       </div>
@@ -461,9 +463,12 @@ function ActeEngagement({ onFinish }: { onFinish: () => void }) {
 /* ---------- Wrapper / orchestrateur ---------- */
 export default function KickoffJourney() {
   const [step, setStep] = useState(0);
+  const [editing, setEditing] = useState(false);
   const act = ACTS[step];
   const progress = useMemo(() => ((step + 1) / ACTS.length) * 100, [step]);
   const Icon = act.icon;
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   const renderBody = () => {
     switch (act.id) {
@@ -480,23 +485,73 @@ export default function KickoffJourney() {
     }
   };
 
+  // Hydrate saved HTML when act changes
+  useLayoutEffect(() => {
+    try {
+      const raw = localStorage.getItem(`${STORAGE_KEY}:${act.id}`);
+      if (raw && bodyRef.current) {
+        const data = JSON.parse(raw);
+        if (data.body) bodyRef.current.innerHTML = data.body;
+        if (data.hero && heroRef.current) heroRef.current.innerHTML = data.hero;
+      }
+    } catch {}
+  }, [step, act.id]);
+
+  const save = () => {
+    try {
+      const payload = {
+        body: bodyRef.current?.innerHTML ?? "",
+        hero: heroRef.current?.innerHTML ?? "",
+      };
+      localStorage.setItem(`${STORAGE_KEY}:${act.id}`, JSON.stringify(payload));
+      toast({ title: "Modifications sauvegardées", description: `Acte ${act.step} enregistré localement.` });
+    } catch {
+      toast({ title: "Erreur de sauvegarde", variant: "destructive" });
+    }
+  };
+
+  const reset = () => {
+    localStorage.removeItem(`${STORAGE_KEY}:${act.id}`);
+    setStep((s) => s); // force rerender
+    // force re-render via key trick: toggle editing off then reload body
+    setTimeout(() => window.location.reload(), 100);
+  };
+
   return (
     <section className="space-y-5">
       {/* Stepper */}
       <div className="rounded-lg border border-border bg-card p-4">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between gap-2">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Parcours guidé · Kick-off OE</p>
             <p className="text-sm font-bold">Acte {act.step}/9 — émotion : {act.emotion}</p>
           </div>
-          <span className="text-xs font-bold text-[hsl(var(--elka-red))]">{Math.round(progress)}%</span>
+          <div className="flex items-center gap-2">
+            {editing && (
+              <>
+                <button onClick={save} className="inline-flex items-center gap-1.5 rounded-md bg-[hsl(var(--elka-red))] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--accent-foreground))] transition hover:opacity-90">
+                  <Save className="h-3 w-3" /> Sauvegarder
+                </button>
+                <button onClick={reset} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition hover:bg-secondary" title="Réinitialiser cet acte">
+                  <RotateCcw className="h-3 w-3" />
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => { if (editing) save(); setEditing((e) => !e); }}
+              className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${editing ? "bg-emerald-600 text-white hover:opacity-90" : "border border-border bg-background hover:bg-secondary"}`}
+            >
+              <Pencil className="h-3 w-3" /> {editing ? "Terminer" : "Éditer"}
+            </button>
+            <span className="text-xs font-bold text-[hsl(var(--elka-red))]">{Math.round(progress)}%</span>
+          </div>
         </div>
         <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-secondary">
           <div className="h-full rounded-full bg-[hsl(var(--elka-red))] transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {ACTS.map((a, i) => (
-            <button key={a.id} onClick={() => setStep(i)} className={`shrink-0 rounded-md border px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${i === step ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : i < step ? "border-[hsl(var(--elka-red))]/40 bg-[hsl(var(--elka-red))]/10 text-foreground" : "border-border bg-secondary/50 text-muted-foreground hover:border-[hsl(var(--elka-red))]/40"}`}>
+            <button key={a.id} onClick={() => { if (editing) save(); setStep(i); }} className={`shrink-0 rounded-md border px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${i === step ? "border-[hsl(var(--elka-red))] bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]" : i < step ? "border-[hsl(var(--elka-red))]/40 bg-[hsl(var(--elka-red))]/10 text-foreground" : "border-border bg-secondary/50 text-muted-foreground hover:border-[hsl(var(--elka-red))]/40"}`}>
               {a.step}
             </button>
           ))}
@@ -504,38 +559,52 @@ export default function KickoffJourney() {
       </div>
 
       {/* Hero acte */}
-      <div className={`relative overflow-hidden rounded-lg border border-border bg-card p-6`}>
+      <div className={`relative overflow-hidden rounded-lg border bg-card p-6 ${editing ? "border-emerald-500/60 ring-2 ring-emerald-500/20" : "border-border"}`}>
         <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${EMOTION_TONE[act.emotion]}`} />
         <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-start gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--elka-red))] text-[hsl(var(--accent-foreground))]"><Icon className="h-5 w-5" /></div>
-            <div>
+            <div ref={heroRef} contentEditable={editing} suppressContentEditableWarning className={editing ? "outline-none rounded-sm focus:ring-2 focus:ring-emerald-400/50" : ""}>
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--elka-red))]">{act.eyebrow}</p>
               <h3 className="mt-1 text-2xl font-black md:text-3xl">{act.title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{act.promise}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-xs font-bold transition hover:bg-secondary disabled:opacity-40">
+            <button disabled={step === 0} onClick={() => { if (editing) save(); setStep((s) => Math.max(0, s - 1)); }} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-xs font-bold transition hover:bg-secondary disabled:opacity-40">
               <ArrowLeft className="h-3.5 w-3.5" /> Précédent
             </button>
-            <button disabled={step === ACTS.length - 1} onClick={() => setStep((s) => Math.min(ACTS.length - 1, s + 1))} className="inline-flex items-center gap-1.5 rounded-md bg-[hsl(var(--elka-red))] px-3 py-2 text-xs font-bold text-[hsl(var(--accent-foreground))] transition hover:opacity-90 disabled:opacity-40">
+            <button disabled={step === ACTS.length - 1} onClick={() => { if (editing) save(); setStep((s) => Math.min(ACTS.length - 1, s + 1)); }} className="inline-flex items-center gap-1.5 rounded-md bg-[hsl(var(--elka-red))] px-3 py-2 text-xs font-bold text-[hsl(var(--accent-foreground))] transition hover:opacity-90 disabled:opacity-40">
               Suivant <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Corps de l'acte */}
-      <div className="animate-reveal">{renderBody()}</div>
+      {/* Corps de l'acte — entièrement éditable en mode édition */}
+      <div
+        key={act.id}
+        ref={bodyRef}
+        contentEditable={editing}
+        suppressContentEditableWarning
+        className={`animate-reveal ${editing ? "rounded-lg outline-none ring-2 ring-emerald-500/30 ring-offset-2 ring-offset-background p-2 [&_*]:cursor-text" : ""}`}
+      >
+        {renderBody()}
+      </div>
+
+      {editing && (
+        <p className="rounded-md border border-emerald-500/40 bg-emerald-500/5 p-3 text-xs text-emerald-700 dark:text-emerald-400">
+          Mode édition actif — cliquez sur n'importe quel texte pour le modifier. Les changements sont sauvegardés localement par acte.
+        </p>
+      )}
 
       {/* Footer nav */}
       <div className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
-        <button disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))} className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-bold transition hover:bg-secondary disabled:opacity-40">
+        <button disabled={step === 0} onClick={() => { if (editing) save(); setStep((s) => Math.max(0, s - 1)); }} className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-bold transition hover:bg-secondary disabled:opacity-40">
           <ArrowLeft className="h-4 w-4" /> Acte précédent
         </button>
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground hidden md:block">Progressive disclosure · 1 acte = 1 décision</p>
-        <button disabled={step === ACTS.length - 1} onClick={() => setStep((s) => Math.min(ACTS.length - 1, s + 1))} className="inline-flex items-center gap-2 rounded-md bg-[hsl(var(--elka-red))] px-3 py-2 text-xs font-bold text-[hsl(var(--accent-foreground))] transition hover:opacity-90 disabled:opacity-40">
+        <button disabled={step === ACTS.length - 1} onClick={() => { if (editing) save(); setStep((s) => Math.min(ACTS.length - 1, s + 1)); }} className="inline-flex items-center gap-2 rounded-md bg-[hsl(var(--elka-red))] px-3 py-2 text-xs font-bold text-[hsl(var(--accent-foreground))] transition hover:opacity-90 disabled:opacity-40">
           Acte suivant <ArrowRight className="h-4 w-4" />
         </button>
       </div>

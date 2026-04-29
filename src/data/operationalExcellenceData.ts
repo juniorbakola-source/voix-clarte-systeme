@@ -135,7 +135,7 @@ export const dashboardViews = [
     value: "3.4x",
     delta: "Plan tenu",
     metrics: [
-      { label: "EBITDA impact", value: "+2.1 M€", trend: "↑" },
+      { label: "EBITDA impact", value: "+2.1 M$", trend: "↑" },
       { label: "COPQ", value: "-38%", trend: "↓" },
       { label: "OTD client", value: "94%", trend: "+6" },
     ],
@@ -211,8 +211,8 @@ export const roadmapPhases = [
 // Version COMEX — objections / réponses
 export const comexBriefing = {
   roi: [
-    { label: "Investissement total", value: "620 K€" },
-    { label: "Gains nets 12 mois", value: "2.1 M€" },
+    { label: "Investissement total", value: "620 K$" },
+    { label: "Gains nets 12 mois", value: "2.1 M$" },
     { label: "Payback", value: "4 mois" },
     { label: "Multiple ROI", value: "3.4x" },
   ],
