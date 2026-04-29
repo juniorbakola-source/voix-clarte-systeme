@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, ArrowRight, CheckCircle2, Compass, Factory, Flame, Gauge,
-  HeartHandshake, Layers, Lightbulb, Map as MapIcon, Rocket, Settings2,
+  HeartHandshake, Layers, Lightbulb, Map as MapIcon, Pencil, RotateCcw, Rocket, Save, Settings2,
   ShieldCheck, Sparkles, Target, TrendingUp, Users, Wrench,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import QuizExcellence from "@/components/voc/QuizExcellence";
+
+const STORAGE_KEY = "kickoff-journey-edits-v1";
 
 /* =========================================================================
    KickoffJourney — 9 actes guidés alignés sur le PPT « Kick-off OE »
